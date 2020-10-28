@@ -11,6 +11,7 @@
 //        RANDOM_CAN define is set to 0, the CAN_SPEED define 
 //        has to match the speed of the desired CAN channel in
 //        order to receive and transfer from and to the CAN bus.
+//        Serial speed is 250000baud <- might need to be increased.
 // Required arduino packages: 
 //        - CAN by Sandeep Mistry (https://github.com/sandeepmistry/arduino-CAN)
 // Required modifications: 
@@ -45,7 +46,8 @@ void printHex(int num) {
 }
 
 void printPacket(packet_t * packet) {
-  // format: 14A,00,00,08,1A002B003C004D00\n
+  // packet format (hex string): [ID],[RTR],[IDE],[DLC],[DATABYTES 0..8B]\n
+  // example: 014A,00,00,07,1A002B003C004D\n
   printHex(packet->id);
   Serial.print(SEPARATOR);
   printHex(packet->rtr);
@@ -187,7 +189,10 @@ void setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-#if RANDOM_CAN == 0
+#if RANDOM_CAN == 1
+  randomSeed(12345);
+  Serial.println("randomCAN Started");
+#else
   if (!CAN.begin(CAN_SPEED)) {
     Serial.println("Starting CAN failed!");
     while (1);
@@ -195,9 +200,6 @@ void setup() {
   // register the receive callback
   CAN.onReceive(onCANReceive);
   Serial.println("CAN RX TX Started");
-#else
-  randomSeed(12345);
-  Serial.println("randomCAN Started");
 #endif
 }
 //------------------------------------------------------------------------------

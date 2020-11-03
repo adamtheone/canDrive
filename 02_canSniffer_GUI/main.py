@@ -49,6 +49,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.sendSelectedDecodedPacketButton.clicked.connect(self.sendDecodedPacketCallback)
         self.playbackMainTableButton.clicked.connect(self.playbackMainTableCallback)
         self.stopPlayBackButton.clicked.connect(self.stopPlayBackCallback)
+        self.showControlsButton.hide()
 
         self.serialWriterThread = SerialWriter.SerialWriterThread(self.serialController)
         self.serialReaderThread = SerialReader.SerialReaderThread(self.serialController)

@@ -12,8 +12,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1181</width>
-    <height>823</height>
+    <width>1226</width>
+    <height>1002</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,7 +23,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>CanSniffer # canDriver 2020</string>
+   <string>CanSniffer # canDrive 2020</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -80,6 +80,11 @@
                <height>20</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>Scan</string>
              </property>
@@ -99,6 +104,11 @@
                <height>20</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
             </widget>
            </item>
            <item>
@@ -114,6 +124,11 @@
                <width>0</width>
                <height>20</height>
               </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
              </property>
              <property name="text">
               <string>Connect</string>
@@ -136,6 +151,11 @@
                <width>0</width>
                <height>20</height>
               </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
              </property>
              <property name="text">
               <string>Disconnect</string>
@@ -166,6 +186,11 @@
             <layout class="QHBoxLayout" name="horizontalLayout_5">
              <item>
               <widget class="QLabel" name="label_3">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Active channel</string>
                </property>
@@ -184,6 +209,11 @@
                  <width>0</width>
                  <height>0</height>
                 </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
                </property>
                <item>
                 <property name="text">
@@ -223,8 +253,13 @@
                  <height>0</height>
                 </size>
                </property>
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
                <property name="text">
-                <string>Playback delay</string>
+                <string>Playback delay </string>
                </property>
               </widget>
              </item>
@@ -241,6 +276,11 @@
                  <width>20</width>
                  <height>20</height>
                 </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>10</pointsize>
+                </font>
                </property>
                <property name="maximum">
                 <number>999</number>
@@ -259,6 +299,11 @@
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
              </property>
              <property name="layoutDirection">
               <enum>Qt::RightToLeft</enum>
@@ -279,6 +324,11 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
              <property name="layoutDirection">
               <enum>Qt::RightToLeft</enum>
              </property>
@@ -295,6 +345,11 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
              <property name="layoutDirection">
               <enum>Qt::RightToLeft</enum>
              </property>
@@ -303,6 +358,24 @@
              </property>
              <property name="checked">
               <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="hideControlsButton">
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Hide Controls</string>
              </property>
             </widget>
            </item>
@@ -348,6 +421,11 @@
              <height>20</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Stop sniffing</string>
            </property>
@@ -366,6 +444,11 @@
              <width>0</width>
              <height>20</height>
             </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
            </property>
            <property name="text">
             <string>Start sniffing</string>
@@ -399,6 +482,11 @@
              <height>20</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Load session from file</string>
            </property>
@@ -420,6 +508,11 @@
              <width>0</width>
              <height>20</height>
             </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
            </property>
            <property name="text">
             <string>Abort session loading</string>
@@ -647,7 +740,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>296</width>
-                 <height>426</height>
+                 <height>594</height>
                 </rect>
                </property>
                <property name="minimumSize">
@@ -709,6 +802,11 @@
                      <height>20</height>
                     </size>
                    </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
                    <property name="text">
                     <string>Clear table</string>
                    </property>
@@ -727,6 +825,11 @@
                      <width>0</width>
                      <height>20</height>
                     </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
                    </property>
                    <property name="text">
                     <string>Highlight new packets</string>
@@ -749,6 +852,11 @@
                      <width>0</width>
                      <height>20</height>
                     </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
                    </property>
                    <property name="text">
                     <string>Highlight new data</string>
@@ -777,6 +885,11 @@
                        <height>20</height>
                       </size>
                      </property>
+                     <property name="font">
+                      <font>
+                       <pointsize>11</pointsize>
+                      </font>
+                     </property>
                      <property name="text">
                       <string>Hide packets older than (s):</string>
                      </property>
@@ -792,6 +905,11 @@
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
+                     </property>
+                     <property name="font">
+                      <font>
+                       <pointsize>10</pointsize>
+                      </font>
                      </property>
                      <property name="value">
                       <number>5</number>
@@ -830,6 +948,11 @@
                      <height>20</height>
                     </size>
                    </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
                    <property name="text">
                     <string>Show packets with the following IDs:</string>
                    </property>
@@ -849,7 +972,7 @@
                    <property name="minimumSize">
                     <size>
                      <width>0</width>
-                     <height>25</height>
+                     <height>20</height>
                     </size>
                    </property>
                    <property name="maximumSize">
@@ -857,6 +980,11 @@
                      <width>16777215</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                    </font>
                    </property>
                    <property name="placeholderText">
                     <string>ID1 ID2 ...</string>
@@ -877,6 +1005,11 @@
                      <height>20</height>
                     </size>
                    </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
                    <property name="text">
                     <string>Hide packets with the following IDs:</string>
                    </property>
@@ -896,7 +1029,7 @@
                    <property name="minimumSize">
                     <size>
                      <width>0</width>
-                     <height>25</height>
+                     <height>20</height>
                     </size>
                    </property>
                    <property name="maximumSize">
@@ -904,6 +1037,11 @@
                      <width>16777215</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>10</pointsize>
+                    </font>
                    </property>
                    <property name="placeholderText">
                     <string>ID1 ID2 ...</string>
@@ -934,7 +1072,7 @@
                   <x>10</x>
                   <y>250</y>
                   <width>281</width>
-                  <height>150</height>
+                  <height>211</height>
                  </rect>
                 </property>
                 <property name="sizePolicy">
@@ -972,6 +1110,12 @@
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -980,7 +1124,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>10</pointsize>
+                     <pointsize>11</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -1010,7 +1154,7 @@
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>0</height>
+                       <height>20</height>
                       </size>
                      </property>
                      <property name="maximumSize">
@@ -1021,7 +1165,7 @@
                      </property>
                      <property name="font">
                       <font>
-                       <pointsize>10</pointsize>
+                       <pointsize>11</pointsize>
                       </font>
                      </property>
                      <property name="text">
@@ -1099,6 +1243,12 @@
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1107,7 +1257,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>10</pointsize>
+                     <pointsize>11</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -1126,6 +1276,12 @@
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1134,7 +1290,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>10</pointsize>
+                     <pointsize>11</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -1144,6 +1300,17 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="stopPlayBackButton">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
                    <property name="text">
                     <string>Stop playback</string>
                    </property>
@@ -1151,6 +1318,12 @@
                  </item>
                  <item>
                   <widget class="QProgressBar" name="playBackProgressBar">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="value">
                     <number>0</number>
                    </property>
@@ -1170,7 +1343,7 @@
                    <property name="sizeHint" stdset="0">
                     <size>
                      <width>20</width>
-                     <height>5</height>
+                     <height>2</height>
                     </size>
                    </property>
                   </spacer>
@@ -1379,6 +1552,11 @@
                    <height>16777215</height>
                   </size>
                  </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>11</pointsize>
+                  </font>
+                 </property>
                  <property name="text">
                   <string>Delete selected line</string>
                  </property>
@@ -1400,7 +1578,7 @@
                  </property>
                  <property name="font">
                   <font>
-                   <pointsize>10</pointsize>
+                   <pointsize>11</pointsize>
                   </font>
                  </property>
                  <property name="text">
@@ -1484,7 +1662,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>10</pointsize>
+                     <pointsize>11</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -1517,6 +1695,11 @@
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <pointsize>11</pointsize>
+                  </font>
                  </property>
                  <property name="text">
                   <string>Clear Dictionary</string>
@@ -1662,6 +1845,11 @@
                <height>20</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>Add new row</string>
              </property>
@@ -1687,6 +1875,11 @@
                <height>20</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>Remove selected row</string>
              </property>
@@ -1703,6 +1896,11 @@
                <height>30</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+              </font>
+             </property>
              <property name="text">
               <string>Send selected commands</string>
              </property>
@@ -1712,6 +1910,11 @@
             <layout class="QHBoxLayout" name="horizontalLayout_14">
              <item>
               <widget class="QCheckBox" name="repeatedDelayCheckBox">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Repeated Delay</string>
                </property>
@@ -1719,6 +1922,11 @@
              </item>
              <item>
               <widget class="QSpinBox" name="repeatTxDelayValue">
+               <property name="font">
+                <font>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="maximum">
                 <number>9999</number>
                </property>
@@ -1742,6 +1950,11 @@
           <height>20</height>
          </size>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
         <property name="title">
          <string>Status</string>
         </property>
@@ -1753,33 +1966,6 @@
           <number>1</number>
          </property>
          <item row="0" column="3">
-          <widget class="QLabel" name="package_2">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Package count:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
           <widget class="QRadioButton" name="rxDataRadioButton">
            <property name="enabled">
             <bool>false</bool>
@@ -1812,7 +1998,7 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
+         <item row="0" column="2">
           <widget class="QCheckBox" name="serialConnectedCheckBox">
            <property name="enabled">
             <bool>false</bool>
@@ -1848,7 +2034,43 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="4">
+         <item row="0" column="10">
+          <widget class="QPlainTextEdit" name="snifferMsgPlainTextEdit">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>300</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="verticalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
+           </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="6">
           <widget class="QLabel" name="packageCounterLabel">
            <property name="enabled">
             <bool>false</bool>
@@ -1875,7 +2097,7 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="5">
+         <item row="0" column="7">
           <spacer name="horizontalSpacer_2">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -1888,32 +2110,7 @@
            </property>
           </spacer>
          </item>
-         <item row="0" column="7">
-          <widget class="QPlainTextEdit" name="snifferMsgPlainTextEdit">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>300</width>
-             <height>25</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>25</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="6">
+         <item row="0" column="9">
           <widget class="QLabel" name="label_2">
            <property name="enabled">
             <bool>false</bool>
@@ -1930,12 +2127,17 @@
              <height>20</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Packet from Sniffer:</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="2">
+         <item row="0" column="4">
           <widget class="QRadioButton" name="txDataRadioButton">
            <property name="enabled">
             <bool>false</bool>
@@ -1965,6 +2167,45 @@
            </property>
           </widget>
          </item>
+         <item row="0" column="5">
+          <widget class="QLabel" name="package_2">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>10</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Package count:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="11">
+          <widget class="QPushButton" name="showControlsButton">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
+           <property name="text">
+            <string>Show Controls</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
@@ -1982,12 +2223,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>949</x>
-     <y>321</y>
+     <x>1151</x>
+     <y>320</y>
     </hint>
     <hint type="destinationlabel">
-     <x>949</x>
-     <y>352</y>
+     <x>1151</x>
+     <y>351</y>
     </hint>
    </hints>
   </connection>
@@ -1998,12 +2239,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>949</x>
-     <y>378</y>
+     <x>1151</x>
+     <y>372</y>
     </hint>
     <hint type="destinationlabel">
-     <x>949</x>
-     <y>409</y>
+     <x>1151</x>
+     <y>403</y>
     </hint>
    </hints>
   </connection>
@@ -2030,12 +2271,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>868</x>
-     <y>293</y>
+     <x>1099</x>
+     <y>294</y>
     </hint>
     <hint type="destinationlabel">
-     <x>908</x>
-     <y>294</y>
+     <x>1142</x>
+     <y>293</y>
     </hint>
    </hints>
   </connection>
@@ -2046,12 +2287,172 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>842</x>
+     <x>847</x>
      <y>57</y>
     </hint>
     <hint type="destinationlabel">
      <x>60</x>
      <y>750</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hideControlsButton</sender>
+   <signal>pressed()</signal>
+   <receiver>groupBox_4</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1130</x>
+     <y>45</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1128</x>
+     <y>72</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hideControlsButton</sender>
+   <signal>pressed()</signal>
+   <receiver>groupBox_5</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1101</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1089</x>
+     <y>17</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hideControlsButton</sender>
+   <signal>pressed()</signal>
+   <receiver>groupBox</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1146</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>364</x>
+     <y>13</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hideControlsButton</sender>
+   <signal>pressed()</signal>
+   <receiver>line_4</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1156</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1174</x>
+     <y>126</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hideControlsButton</sender>
+   <signal>pressed()</signal>
+   <receiver>showControlsButton</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1162</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1152</x>
+     <y>848</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showControlsButton</sender>
+   <signal>pressed()</signal>
+   <receiver>showControlsButton</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1110</x>
+     <y>838</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1138</x>
+     <y>841</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showControlsButton</sender>
+   <signal>pressed()</signal>
+   <receiver>line_4</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1085</x>
+     <y>844</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>577</x>
+     <y>125</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showControlsButton</sender>
+   <signal>pressed()</signal>
+   <receiver>groupBox_4</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1089</x>
+     <y>835</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>16</x>
+     <y>114</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showControlsButton</sender>
+   <signal>pressed()</signal>
+   <receiver>groupBox_5</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1092</x>
+     <y>854</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>395</x>
+     <y>50</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showControlsButton</sender>
+   <signal>pressed()</signal>
+   <receiver>groupBox</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1165</x>
+     <y>845</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>77</x>
+     <y>22</y>
     </hint>
    </hints>
   </connection>

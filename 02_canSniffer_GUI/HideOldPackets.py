@@ -2,21 +2,21 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 
 class HideOldPacketsThread(QThread):
-    hide_old_packets_signal = pyqtSignal()
+    hideOldPacketsSignal = pyqtSignal()
 
     def __init__(self):
         super(HideOldPacketsThread, self).__init__()
-        self.is_running = False
+        self.isRunning = False
         self.period = 5
 
     def stop(self):
-        self.is_running = False
+        self.isRunning = False
 
     def enable(self, _period):
-        self.is_running = True
+        self.isRunning = True
         self.period = _period
 
     def run(self):
-        while self.is_running:
+        while self.isRunning:
             self.sleep(self.period)
-            self.hide_old_packets_signal.emit()
+            self.hideOldPacketsSignal.emit()

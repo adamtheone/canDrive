@@ -3,20 +3,20 @@ import serial
 
 
 class SerialReaderThread(QThread):
-    received_package_signal = pyqtSignal(str)
+    receivedPacketSignal = pyqtSignal(str)
     buf = bytearray()
 
-    def __init__(self, serial_=None):
+    def __init__(self, serial=None):
         super(SerialReaderThread, self).__init__()
-        self.serial = serial_
-        self.is_running = False
+        self.serial = serial
+        self.isRunning = False
 
     def stop(self):
-        self.is_running = False
+        self.isRunning = False
 
     def run(self):
-        self.is_running = True
-        while self.is_running:
+        self.isRunning = True
+        while self.isRunning:
             i = self.buf.find(b"\n")
             if i >= 0:
                 r = self.buf[:i + 1]
@@ -24,12 +24,12 @@ class SerialReaderThread(QThread):
                 # print(r.decode("utf-8"))
                 try:
                     decodedData = r.decode("utf-8")
-                    self.received_package_signal.emit(decodedData)
+                    self.receivedPacketSignal.emit(decodedData)
                 except UnicodeDecodeError as e:
                     print(e)
             try:
-                incoming_bytes_num = max(1, min(2048, self.serial.in_waiting))
-                data = self.serial.read(incoming_bytes_num)
+                incomingBytesNum = max(1, min(2048, self.serial.in_waiting))
+                data = self.serial.read(incomingBytesNum)
             except serial.SerialException as e:
                 print(e)
                 pass

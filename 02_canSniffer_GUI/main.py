@@ -1,3 +1,4 @@
+# canDrive @ 2020
 import serial
 import canSniffer_ui
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, QHeaderView, QFileDialog
@@ -6,6 +7,7 @@ from PyQt5.QtGui import QColor
 import serial.tools.list_ports
 
 import sys
+import os
 import time
 import qtmodern
 from qtmodern import styles
@@ -34,14 +36,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.hideIdsLineEdit.textChanged.connect(self.hideIdsTextChanged)
         self.clearLabelDictButton.clicked.connect(self.clearLabelDict)
         self.serialController = serial.Serial()
-        self.serialWriterThread = SerialWriter.SerialWriterThread(self.serialController)
-        self.serialReaderThread = SerialReader.SerialReaderThread(self.serialController)
-        self.fileLoaderThread = FileLoader.FileLoaderThread()
-        self.fileLoaderThread.new_row_signal.connect(self.mainTablePopulatorCallback)
-        self.serialReaderThread.received_package_signal.connect(self.serialPacketReceiverCallback)
-        self.hideOldPacketsThread = HideOldPackets.HideOldPacketsThread()
-        self.hideOldPacketsThread.hide_old_packets_signal.connect(self.hideOldPacketsCallback)
-        self.tableWidget.cellClicked.connect(self.cellWasClicked)
+        self.mainMessageTableWidget.cellClicked.connect(self.cellWasClicked)
         self.newTxTableRow.clicked.connect(self.newTxTableRowCallback)
         self.removeTxTableRow.clicked.connect(self.removeTxTableRowCallback)
         self.sendTxTableButton.clicked.connect(self.sendTxTableCallback)
@@ -49,246 +44,131 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.showSendingTableCheckBox.clicked.connect(self.showSendingTableButtonCallback)
         self.addToDecodedPushButton.clicked.connect(self.addToDecodedCallback)
         self.deleteDecodedPacketLinePushButton.clicked.connect(self.deleteDecodedLineCallback)
-        self.tableWidget_2.itemChanged.connect(self.decodedTableItemChangedCallback)
+        self.decodedMessagesTableWidget.itemChanged.connect(self.decodedTableItemChangedCallback)
         self.clearTableButton.clicked.connect(self.clearTableCallback)
         self.sendSelectedDecodedPacketButton.clicked.connect(self.sendDecodedPacketCallback)
         self.playbackMainTableButton.clicked.connect(self.playbackMainTableCallback)
+        self.stopPlayBackButton.clicked.connect(self.stopPlayBackCallback)
+
+        self.serialWriterThread = SerialWriter.SerialWriterThread(self.serialController)
+        self.serialReaderThread = SerialReader.SerialReaderThread(self.serialController)
+        self.serialReaderThread.receivedPacketSignal.connect(self.serialPacketReceiverCallback)
+        self.fileLoaderThread = FileLoader.FileLoaderThread()
+        self.fileLoaderThread.newRowSignal.connect(self.mainTablePopulatorCallback)
+        self.fileLoaderThread.loadingFinishedSignal.connect(self.fileLoadingFinishedCallback)
+        self.hideOldPacketsThread = HideOldPackets.HideOldPacketsThread()
+        self.hideOldPacketsThread.hideOldPacketsSignal.connect(self.hideOldPacketsCallback)
+
+        self.stopPlayBackButton.setVisible(False)
+        self.playBackProgressBar.setVisible(False)
         self.sendingGroupBox.hide()
         self.hideOldPacketsThread.enable(5)
         self.hideOldPacketsThread.start()
+
         self.scanPorts()
-        self.start_time = 0
+        self.startTime = 0
         self.receivedPackets = 0
+        self.playbackMainTableIndex = 0
         self.labelDictFile = None
         self.idDict = dict([])
         self.showOnlyIdsSet = set([])
         self.hideIdsSet = set([])
         self.idLabelDict = dict()
-        self.inited = False
+        self.isInited = False
         self.init()
 
-        # self.table.setColumnWidth(index, width)
-        for i in range(3, self.tableWidget.columnCount()):
-            self.tableWidget_2.setColumnWidth(i, 15)
-        for i in range(5, self.tableWidget.columnCount()):
-            self.tableWidget.setColumnWidth(i, 15)
-        self.tableWidget_2.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        #     self.txTable.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        # self.tableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        if not os.path.exists("save"):
+            os.makedirs("save")
+
+        for i in range(5, self.mainMessageTableWidget.columnCount()):
+            self.mainMessageTableWidget.setColumnWidth(i, 32)
+        for i in range(5, self.mainMessageTableWidget.columnCount()):
+            self.decodedMessagesTableWidget.setColumnWidth(i, 32)
+        self.decodedMessagesTableWidget.setColumnWidth(1, 150)
+        self.decodedMessagesTableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.txTable.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
         self.showFullScreen()
 
-    def scanPorts(self):
-        #self.portSelectorComboBox.addItem('COM3')
-        comPorts = serial.tools.list_ports.comports()
-        nameList = list(port.device for port in comPorts)
-        #print(nameList)
-        for name in nameList:
-            self.portSelectorComboBox.addItem(name)
-
-    def serialPortConnect(self):
+    def stopPlayBackCallback(self):
         try:
-            self.serialController.port = self.portSelectorComboBox.currentText()
-            self.serialController.baudrate = 250000
-            self.serialController.open()
-            self.serialReaderThread.start()
-            self.serialWriterThread.start()
-            print(self.serialController.is_open)
-            self.serialConnectedCheckBox.setChecked(True)
-            self.portDisconnectButton.setEnabled(True)
-            self.portConnectButton.setEnabled(False)
-            self.startSniffingButton.setEnabled(True)
-            self.stopSniffingButton.setEnabled(False)
-        except serial.SerialException as e:
-            print('Error opening port:')
-            print(e)
+            self.serialWriterThread.packetSentSignal.disconnect()
+        except:
+            pass
+        self.serialWriterThread.clearQueues()
+        self.playbackMainTableButton.setVisible(True)
+        self.stopPlayBackButton.setVisible(False)
+        self.playBackProgressBar.setVisible(False)
 
-    def serialPortDisconnect(self):
-        if self.stopSniffingButton.isEnabled():
-            self.stopSniffing()
-        try:
-            self.serialReaderThread.stop()
-            self.serialWriterThread.stop()
-            self.portDisconnectButton.setEnabled(False)
-            self.portConnectButton.setEnabled(True)
-            self.startSniffingButton.setEnabled(False)
-            self.serialConnectedCheckBox.setChecked(False)
-            self.serialController.close()
-            print(self.serialController.is_open)
-        except serial.SerialException as e:
-            print('Error closing port')
-            print(e)
+    def playbackMainTable1Packet(self):
+        row = self.playbackMainTableIndex
 
-    def startSniffing(self):
-        if self.autoclearCheckBox.isChecked():
-            self.idDict.clear()
-            self.tableWidget.setRowCount(0)
-        self.startSniffingButton.setEnabled(False)
-        self.stopSniffingButton.setEnabled(True)
-        self.sendTxTableButton.setEnabled(True)
-
-        self.start_time = time.time()
-
-    def stopSniffing(self):
-        self.startSniffingButton.setEnabled(True)
-        self.stopSniffingButton.setEnabled(False)
-        self.sendTxTableButton.setEnabled(False)
-
-    def serialPacketReceiverCallback(self, packet):
-        if self.startSniffingButton.isEnabled():
+        if row < 0:
+            self.stopPlayBackCallback()
             return
-        packetSplit = packet[:-1].split(',')
+        maxRows = self.mainMessageTableWidget.rowCount()
+        txBuf = ""
+        id = ((self.mainMessageTableWidget.item(row, 1).text()).split(" "))[0]
+        if len(id) % 2:
+            txBuf += '0'
+        txBuf += id + ',' + self.mainMessageTableWidget.item(row, 2).text() + ',' + \
+                 self.mainMessageTableWidget.item(row, 3).text() + ','
+        for i in range(5, self.mainMessageTableWidget.columnCount()):
+            txBuf += self.mainMessageTableWidget.item(row, i).text()
+        txBuf += '\n'
+        if row < maxRows - 1:
+            dt = float(self.mainMessageTableWidget.item(row, 0).text()) - float(
+                self.mainMessageTableWidget.item(row + 1, 0).text())
+            dt = abs(int(dt * 1000))
+            self.serialWriterThread.setNormalWriteDelay(dt)
+        self.playBackProgressBar.setValue(int((maxRows - row) / maxRows * 100))
+        self.playbackMainTableIndex -= 1
 
-        if len(packetSplit) != 4:
-            print("wrong packet!" + packet)
-            self.snifferMsgPlainTextEdit.document().setPlainText(packet)
-            return
-
-        rowData = [str(time.time()-self.start_time)[:7]]  # timestamp
-        rowData += packetSplit[0:3]  # IDE, RTR, EXT
-        DLC = len(packetSplit[3]) // 2
-        rowData += str(DLC)  # DLC
-        if DLC > 0:
-            rowData += [packetSplit[3][i:i+2] for i in range(0, len(packetSplit[3]), 2)]  # data
-            
-        self.mainTablePopulatorCallback(rowData)
-
-    def mainTablePopulatorCallback(self, rowData):
-        self.rxDataRadioButton.setChecked(True)
-        if self.showOnlyIdsCheckBox.isChecked():
-            if str(rowData[1]) not in self.showOnlyIdsSet:
-                return
-        if self.hideIdsCheckBox.isChecked():
-            if str(rowData[1]) in self.hideIdsSet:
-                return
-
-        new_id = str(rowData[1])
-
-        row = 0  # self.tableWidget.rowCount()
-        if self.groupModeCheckBox.isChecked():
-            if new_id in self.idDict.keys():
-                row = self.idDict[new_id]
-            else:
-                row = self.tableWidget.rowCount()
-                self.tableWidget.insertRow(row)
-        else:
-            self.tableWidget.insertRow(row)
-
-        if self.tableWidget.isRowHidden(row):
-            self.tableWidget.setRowHidden(row, False)
-
-        for i in range(self.tableWidget.columnCount()):
-            if i < len(rowData):
-                data = str(rowData[i])
-                item = self.tableWidget.item(row, i)
-                new_item = QTableWidgetItem(data)
-                if item:
-                    if item.text() != data:
-                        if self.highlightNewDataCheckBox.isChecked() and \
-                                self.groupModeCheckBox.isChecked() and \
-                                i > 4:
-                            new_item.setBackground(QColor(104, 37, 98))
-                else:
-                    if self.highlightNewDataCheckBox.isChecked() and \
-                            self.groupModeCheckBox.isChecked() and \
-                            i > 4:
-                        new_item.setBackground(QColor(104, 37, 98))
-            else:
-                new_item = QTableWidgetItem()
-            self.tableWidget.setItem(row, i, new_item)
-
-        isFamiliar = False
-
-        if self.highlightNewIdCheckBox.isChecked():
-            if new_id not in self.idDict.keys():
-                for j in range(5):
-                    self.tableWidget.item(row, j).setBackground(QColor(52, 44, 124))
-
-        self.idDict[new_id] = row
-
-        if new_id in self.idLabelDict.keys():
-            value = new_id + " (" + self.idLabelDict[new_id] + ")"
-            self.tableWidget.setItem(row, 1, QTableWidgetItem(value))
-            isFamiliar = True
-
-        for i in range(self.tableWidget.columnCount()):
-            if (isFamiliar or (new_id.find("(") >= 0)) and i < 5:
-                self.tableWidget.item(row, i).setBackground(QColor(53, 81, 52))
-
-            self.tableWidget.item(row, i).setTextAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
-
-        self.receivedPackets = self.receivedPackets + 1
-        self.packageCounterLabel.setText(str(self.receivedPackets))
-        self.rxDataRadioButton.setChecked(False)
+        self.serialWriterThread.write(txBuf)
 
     def playbackMainTableCallback(self):
-        p25 = p50 = p75 = False
-        print('playing back...')
-        maxRows = self.tableWidget.rowCount()
+        self.playbackMainTableButton.setVisible(False)
+        self.stopPlayBackButton.setVisible(True)
+        self.playBackProgressBar.setVisible(True)
+        self.playbackMainTableIndex = self.mainMessageTableWidget.rowCount() - 1
         self.serialWriterThread.setRepeatedWriteDelay(0)
-        for row in range(maxRows-1, -1, -1):
-            txbuf = ""
-            id = ((self.tableWidget.item(row, 1).text().lower()).split(" "))[0]
-            if len(id) % 2:
-                txbuf += '0'
-            txbuf += id + ',' + self.tableWidget.item(row, 2).text() + ',' +\
-                    self.tableWidget.item(row, 3).text() + ','
-            for i in range(5, self.tableWidget.columnCount()):
-                txbuf += self.tableWidget.item(row, i).text()
-            txbuf += '\n';
-            if row < maxRows - 1:
-                dt = float(self.tableWidget.item(row, 0).text()) - float(self.tableWidget.item(row+1, 0).text())
-                time.sleep(dt)
-            self.serialWriterThread.write(txbuf)
-            #print(txbuf)
-            if not p75 and (maxRows - row) / maxRows > 0.75:
-                print('75%')
-                p75 = True
-            else:
-                if not p50 and (maxRows - row) / maxRows > 0.5:
-                    print('50%')
-                    p50 = True
-                else:
-                    if not p25 and (maxRows - row) / maxRows > 0.25:
-                        print('25%')
-                        p25 = True
-        print('finished')
+        print('playing back...')
+        self.serialWriterThread.packetSentSignal.connect(self.playbackMainTable1Packet)
+        self.playbackMainTable1Packet()
 
     def clearTableCallback(self):
         self.idDict.clear()
-        self.tableWidget.setRowCount(0)
+        self.mainMessageTableWidget.setRowCount(0)
 
     def sendDecodedPacketCallback(self):
         self.newTxTableRowCallback()
-        new_row = 0
-        new_id = str(self.tableWidget_2.item(self.tableWidget_2.currentRow(), 1).text()).split(" ")
-        new_item = QTableWidgetItem(new_id[0])
-        self.txTable.setItem(new_row, 0, new_item)
-        new_data = ""
-        for i in range(int(self.tableWidget_2.item(self.tableWidget_2.currentRow(), 2).text())):
-            new_data += str(self.tableWidget_2.item(self.tableWidget_2.currentRow(), 3 + i).text())
-        self.txTable.setItem(new_row, 3, QTableWidgetItem(new_data))
-        self.txTable.selectRow(new_row)
+        newRow = 0
+        decodedCurrentRow = self.decodedMessagesTableWidget.currentRow()
+        newId = str(self.decodedMessagesTableWidget.item(decodedCurrentRow, 1).text()).split(" ")
+        newItem = QTableWidgetItem(newId[0])
+        self.txTable.setItem(newRow, 0, QTableWidgetItem(newItem))
+        for i in range(1, 3):
+            self.txTable.setItem(newRow, i, self.decodedMessagesTableWidget.item(decodedCurrentRow, i+1))
+        newData = ""
+        for i in range(int(self.decodedMessagesTableWidget.item(decodedCurrentRow, 4).text())):
+            newData += str(self.decodedMessagesTableWidget.item(decodedCurrentRow, 5 + i).text())
+        self.txTable.setItem(newRow, 3, QTableWidgetItem(newData))
+        self.txTable.selectRow(newRow)
         if self.sendTxTableButton.isEnabled():
             self.sendTxTableCallback()
 
     def decodedTableItemChangedCallback(self):
-        if self.inited:
-            self.saveTableToFile(self.tableWidget_2, "save/decodedPackets.csv")
+        if self.isInited:
+            self.saveTableToFile(self.decodedMessagesTableWidget, "save/decodedPackets.csv")
 
     def deleteDecodedLineCallback(self):
-        self.tableWidget_2.removeRow(self.tableWidget_2.currentRow())
+        self.decodedMessagesTableWidget.removeRow(self.decodedMessagesTableWidget.currentRow())
 
     def addToDecodedCallback(self):
-        newRow = self.tableWidget_2.rowCount()
-        self.tableWidget_2.insertRow(newRow)
-        new_item = QTableWidgetItem(self.tableWidget.item(self.tableWidget.currentRow(), 1))
-        self.tableWidget_2.setItem(newRow, 1, new_item)
-        new_item = QTableWidgetItem(self.tableWidget.item(self.tableWidget.currentRow(), 4))
-        self.tableWidget_2.setItem(newRow, 2, new_item)
-        for i in range(3, self.tableWidget_2.columnCount()):
-            new_item = QTableWidgetItem(self.tableWidget.item(self.tableWidget.currentRow(), 2+i))
-            self.tableWidget_2.setItem(newRow, i, new_item)
+        newRow = self.decodedMessagesTableWidget.rowCount()
+        self.decodedMessagesTableWidget.insertRow(newRow)
+        for i in range(1, self.decodedMessagesTableWidget.columnCount()):
+            new_item = QTableWidgetItem(self.mainMessageTableWidget.item(self.mainMessageTableWidget.currentRow(), i))
+            self.decodedMessagesTableWidget.setItem(newRow, i, new_item)
 
     def showSendingTableButtonCallback(self):
         if self.showSendingTableCheckBox.isChecked():
@@ -301,31 +181,33 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             return
         if not self.groupModeCheckBox.isChecked():
             return
-        for i in range(self.tableWidget.rowCount()):
-            if self.tableWidget.isRowHidden(i):
+        for i in range(self.mainMessageTableWidget.rowCount()):
+            if self.mainMessageTableWidget.isRowHidden(i):
                 continue
-            packet_time = float(self.tableWidget.item(i, 0).text())
-            if (time.time() - self.start_time) - packet_time > self.hideOldPeriod.value():
-                # print("Hiding: " + str(self.tableWidget.item(i,1).text()))
+            packetTime = float(self.mainMessageTableWidget.item(i, 0).text())
+            if (time.time() - self.startTime) - packetTime > self.hideOldPeriod.value():
+                # print("Hiding: " + str(self.mainMessageTableWidget.item(i,1).text()))
                 # print(time.time() - self.start_time)
-                self.tableWidget.setRowHidden(i, True)
+                self.mainMessageTableWidget.setRowHidden(i, True)
 
     def sendTxTableCallback(self):
         for row in range(self.txTable.rowCount()):
             if self.txTable.item(row, 0).isSelected():
-                txbuf = ""
+                txBuf = ""
                 for i in range(self.txTable.columnCount()):
-                    substr = self.txTable.item(row, i).text() + ","
-                    if not len(substr) % 2:
-                        substr = '0' + substr
-                    txbuf += substr
-                txbuf = txbuf[:-1] + '\n'
+                    subStr = self.txTable.item(row, i).text() + ","
+                    if not len(subStr) % 2:
+                        subStr = '0' + subStr
+                    txBuf += subStr
+                txBuf = txBuf[:-1] + '\n'
                 if self.repeatedDelayCheckBox.isChecked():
                     self.serialWriterThread.setRepeatedWriteDelay(self.repeatTxDelayValue.value())
                 else:
                     self.serialWriterThread.setRepeatedWriteDelay(0)
-                self.serialWriterThread.write(txbuf)
+                self.serialWriterThread.write(txBuf)
 
+    def fileLoadingFinishedCallback(self):
+        self.abortSessionLoadingButton.setEnabled(False)
 
     def abortSessionLoadingCallback(self):
         self.fileLoaderThread.stop()
@@ -352,12 +234,12 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.hideIdsSet = set(self.hideIdsLineEdit.text().split(" "))
 
     def init(self):
-        self.loadTableFromFile(self.tableWidget_2, "save/decodedPackets.csv")
+        self.loadTableFromFile(self.decodedMessagesTableWidget, "save/decodedPackets.csv")
         self.loadTableFromFile(self.idLabelDictTable, "save/labelDict.csv")
         for row in range(self.idLabelDictTable.rowCount()):
             self.idLabelDict[str(self.idLabelDictTable.item(row, 0).text())] = \
                 str(self.idLabelDictTable.item(row, 1).text())
-        self.inited = True
+        self.isInited = True
 
     def clearLabelDict(self):
         self.idLabelDictTable.setRowCount(0)
@@ -370,32 +252,101 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             with open(str(path), 'w', newline='') as stream:
                 writer = csv.writer(stream)
                 for row in range(table.rowCount()-1, -1, -1):
-                    rowdata = []
+                    rowData = []
                     for column in range(table.columnCount()):
                         item = table.item(row, column)
                         if item is not None:
-                            rowdata.append(str(item.text()))
+                            rowData.append(str(item.text()))
                         else:
-                            rowdata.append('')
-                    writer.writerow(rowdata)
+                            rowData.append('')
+                    writer.writerow(rowData)
+
+    def mainTablePopulatorCallback(self, rowData):
+        self.rxDataRadioButton.setChecked(True)
+        if self.showOnlyIdsCheckBox.isChecked():
+            if str(rowData[1]) not in self.showOnlyIdsSet:
+                return
+        if self.hideIdsCheckBox.isChecked():
+            if str(rowData[1]) in self.hideIdsSet:
+                return
+
+        newId = str(rowData[1])
+
+        row = 0  # self.mainMessageTableWidget.rowCount()
+        if self.groupModeCheckBox.isChecked():
+            if newId in self.idDict.keys():
+                row = self.idDict[newId]
+            else:
+                row = self.mainMessageTableWidget.rowCount()
+                self.mainMessageTableWidget.insertRow(row)
+        else:
+            self.mainMessageTableWidget.insertRow(row)
+
+        if self.mainMessageTableWidget.isRowHidden(row):
+            self.mainMessageTableWidget.setRowHidden(row, False)
+
+        for i in range(self.mainMessageTableWidget.columnCount()):
+            if i < len(rowData):
+                data = str(rowData[i])
+                item = self.mainMessageTableWidget.item(row, i)
+                newItem = QTableWidgetItem(data)
+                if item:
+                    if item.text() != data:
+                        if self.highlightNewDataCheckBox.isChecked() and \
+                                self.groupModeCheckBox.isChecked() and \
+                                i > 4:
+                            newItem.setBackground(QColor(104, 37, 98))
+                else:
+                    if self.highlightNewDataCheckBox.isChecked() and \
+                            self.groupModeCheckBox.isChecked() and \
+                            i > 4:
+                        newItem.setBackground(QColor(104, 37, 98))
+            else:
+                newItem = QTableWidgetItem()
+            self.mainMessageTableWidget.setItem(row, i, newItem)
+
+        isFamiliar = False
+
+        if self.highlightNewIdCheckBox.isChecked():
+            if newId not in self.idDict.keys():
+                for j in range(3):
+                    self.mainMessageTableWidget.item(row, j).setBackground(QColor(52, 44, 124))
+
+        self.idDict[newId] = row
+
+        if newId in self.idLabelDict.keys():
+            value = newId + " (" + self.idLabelDict[newId] + ")"
+            self.mainMessageTableWidget.setItem(row, 1, QTableWidgetItem(value))
+            isFamiliar = True
+
+        for i in range(self.mainMessageTableWidget.columnCount()):
+            if (isFamiliar or (newId.find("(") >= 0)) and i < 3:
+                self.mainMessageTableWidget.item(row, i).setBackground(QColor(53, 81, 52))
+
+            self.mainMessageTableWidget.item(row, i).setTextAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
+
+        self.receivedPackets = self.receivedPackets + 1
+        self.packageCounterLabel.setText(str(self.receivedPackets))
+        self.rxDataRadioButton.setChecked(False)
+
 
     def loadTableFromFile(self, table, path):
         if path is None:
             path, _ = QFileDialog.getOpenFileName(self, 'Open File', './save', 'CSV(*.csv)')
         if path != '':
-            if table == self.tableWidget:
+            if table == self.mainMessageTableWidget:
                 self.fileLoaderThread.start()
                 self.fileLoaderThread.enable(path, self.playbackDelaySpinBox.value())
                 self.abortSessionLoadingButton.setEnabled(True)
                 return True
             try:
                 with open(str(path), 'r') as stream:
-                    for rowdata in csv.reader(stream):
+                    for rowData in csv.reader(stream):
                         row = table.rowCount()
                         table.insertRow(row)
-                        for i in range(len(rowdata)):
-                            if len(rowdata[i]):
-                                item = QTableWidgetItem(str(rowdata[i]))
+                        for i in range(len(rowData)):
+                            if len(rowData[i]):
+                                item = QTableWidgetItem(str(rowData[i]))
                                 table.setItem(row, i, item)
             except OSError:
                 print("file not found: " + path)
@@ -403,14 +354,14 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
     def loadSessionFromFile(self):
         if self.autoclearCheckBox.isChecked():
             self.idDict.clear()
-            self.tableWidget.setRowCount(0)
-        self.loadTableFromFile(self.tableWidget, None)
+            self.mainMessageTableWidget.setRowCount(0)
+        self.loadTableFromFile(self.mainMessageTableWidget, None)
 
     def saveSessionToFile(self):
-        self.saveTableToFile(self.tableWidget, None)
+        self.saveTableToFile(self.mainMessageTableWidget, None)
 
     def cellWasClicked(self):
-        self.saveIdToDictLineEdit.setText(self.tableWidget.item(self.tableWidget.currentRow(), 1).text())
+        self.saveIdToDictLineEdit.setText(self.mainMessageTableWidget.item(self.mainMessageTableWidget.currentRow(), 1).text())
 
     def saveIdLabelToDictCallback(self):
         if (not self.saveIdToDictLineEdit.text()) or (not self.saveLabelToDictLineEdit.text()):
@@ -423,6 +374,82 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.saveIdToDictLineEdit.setText('')
         self.saveLabelToDictLineEdit.setText('')
         self.saveTableToFile(self.idLabelDictTable, "save/labelDict.csv")
+
+    def startSniffing(self):
+        if self.autoclearCheckBox.isChecked():
+            self.idDict.clear()
+            self.mainMessageTableWidget.setRowCount(0)
+        self.startSniffingButton.setEnabled(False)
+        self.stopSniffingButton.setEnabled(True)
+        self.sendTxTableButton.setEnabled(True)
+        self.activeChannelComboBox.setEnabled(False)
+
+        txBuf = [0x42, self.activeChannelComboBox.currentIndex()]   # TX FORWARDER
+        self.serialWriterThread.write(txBuf)
+        txBuf = [0x41, 1 << self.activeChannelComboBox.currentIndex()]  # RX FORWARDER
+        self.serialWriterThread.write(txBuf)
+
+        self.startTime = time.time()
+
+    def stopSniffing(self):
+        self.startSniffingButton.setEnabled(True)
+        self.stopSniffingButton.setEnabled(False)
+        self.sendTxTableButton.setEnabled(False)
+        self.activeChannelComboBox.setEnabled(True)
+
+    def serialPacketReceiverCallback(self, packet):
+        if self.startSniffingButton.isEnabled():
+            return
+        packetSplit = packet[:-1].split(',')
+
+        if len(packetSplit) != 4:
+            print("wrong packet!" + packet)
+            self.snifferMsgPlainTextEdit.document().setPlainText(packet)
+            return
+
+        rowData = [str(time.time() - self.startTime)[:7]]  # timestamp
+        rowData += packetSplit[0:3]  # IDE, RTR, EXT
+        DLC = len(packetSplit[3]) // 2
+        rowData += str(DLC)  # DLC
+        if DLC > 0:
+            rowData += [packetSplit[3][i:i + 2] for i in range(0, len(packetSplit[3]), 2)]  # data
+
+        self.mainTablePopulatorCallback(rowData)
+
+    def serialPortConnect(self):
+        try:
+            self.serialController.port = self.portSelectorComboBox.currentText()
+            self.serialController.baudrate = 250000
+            self.serialController.open()
+            self.serialReaderThread.start()
+            self.serialWriterThread.start()
+            self.serialConnectedCheckBox.setChecked(True)
+            self.portDisconnectButton.setEnabled(True)
+            self.portConnectButton.setEnabled(False)
+            self.startSniffingButton.setEnabled(True)
+            self.stopSniffingButton.setEnabled(False)
+        except serial.SerialException as e:
+            print('Error opening port: ' + str(e))
+
+    def serialPortDisconnect(self):
+        if self.stopSniffingButton.isEnabled():
+            self.stopSniffing()
+        try:
+            self.serialReaderThread.stop()
+            self.serialWriterThread.stop()
+            self.portDisconnectButton.setEnabled(False)
+            self.portConnectButton.setEnabled(True)
+            self.startSniffingButton.setEnabled(False)
+            self.serialConnectedCheckBox.setChecked(False)
+            self.serialController.close()
+        except serial.SerialException as e:
+            print('Error closing port: ' + str(e))
+
+    def scanPorts(self):
+        comPorts = serial.tools.list_ports.comports()
+        nameList = list(port.device for port in comPorts)
+        for name in nameList:
+            self.portSelectorComboBox.addItem(name)
 
 
 def exception_hook(exctype, value, traceback):

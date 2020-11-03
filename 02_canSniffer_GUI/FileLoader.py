@@ -3,33 +3,35 @@ import csv
 
 
 class FileLoaderThread(QThread):
-    new_row_signal = pyqtSignal(list)
+    newRowSignal = pyqtSignal(list)
+    loadingFinishedSignal = pyqtSignal()
     path = None
     delayMs = 0
 
     def __init__(self):
         super(FileLoaderThread, self).__init__()
-        self.is_running = False
+        self.isRunning = False
 
-    def enable(self, path_, delayMs_):
-        self.is_running = True
-        self.path = path_
-        self.delayMs = delayMs_
+    def enable(self, path, delayMs):
+        self.isRunning = True
+        self.path = path
+        self.delayMs = delayMs
 
     def stop(self):
-        self.is_running = False
+        self.isRunning = False
         self.path = None
 
     def run(self):
-        while self.is_running:
+        while self.isRunning:
             if self.path is not None:
                 try:
                     with open(str(self.path), 'r') as stream:
                         for rowData in csv.reader(stream):
-                            if not self.is_running:
+                            if not self.isRunning:
                                 break
-                            self.new_row_signal.emit(rowData)
+                            self.newRowSignal.emit(rowData)
                             self.msleep(self.delayMs)
+                        self.loadingFinishedSignal.emit()
                 except OSError:
                     print("file not found: " + self.path)
                 self.stop()

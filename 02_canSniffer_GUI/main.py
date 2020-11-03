@@ -49,6 +49,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.sendSelectedDecodedPacketButton.clicked.connect(self.sendDecodedPacketCallback)
         self.playbackMainTableButton.clicked.connect(self.playbackMainTableCallback)
         self.stopPlayBackButton.clicked.connect(self.stopPlayBackCallback)
+        self.hideAllPacketsButton.clicked.connect(self.hideAllPackets)
         self.showControlsButton.hide()
 
         self.serialWriterThread = SerialWriter.SerialWriterThread(self.serialController)
@@ -176,6 +177,13 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.sendingGroupBox.show()
         else:
             self.sendingGroupBox.hide()
+
+    def hideAllPackets(self):
+        text = ""
+        for id in self.idDict:
+            text += id + " "
+        self.hideIdsLineEdit.setText(text)
+        self.clearTableCallback()
 
     def hideOldPacketsCallback(self):
         if not self.hideOldPacketsCheckBox.isChecked():

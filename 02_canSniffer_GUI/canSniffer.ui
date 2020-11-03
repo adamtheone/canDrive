@@ -1016,6 +1016,27 @@
                   </widget>
                  </item>
                  <item>
+                  <widget class="QPushButton" name="hideAllPacketsButton">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Hide all packets</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QLineEdit" name="hideIdsLineEdit">
                    <property name="enabled">
                     <bool>false</bool>
@@ -2223,12 +2244,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1151</x>
-     <y>320</y>
+     <x>1185</x>
+     <y>309</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1151</x>
-     <y>351</y>
+     <x>1185</x>
+     <y>332</y>
     </hint>
    </hints>
   </connection>
@@ -2239,12 +2260,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1151</x>
-     <y>372</y>
+     <x>1185</x>
+     <y>355</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1151</x>
-     <y>403</y>
+     <x>1185</x>
+     <y>402</y>
     </hint>
    </hints>
   </connection>
@@ -2255,11 +2276,11 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>948</x>
+     <x>982</x>
      <y>210</y>
     </hint>
     <hint type="destinationlabel">
-     <x>949</x>
+     <x>983</x>
      <y>250</y>
     </hint>
    </hints>
@@ -2271,12 +2292,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1099</x>
-     <y>294</y>
+     <x>1133</x>
+     <y>286</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1142</x>
-     <y>293</y>
+     <x>1173</x>
+     <y>282</y>
     </hint>
    </hints>
   </connection>
@@ -2287,12 +2308,12 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>847</x>
+     <x>881</x>
      <y>57</y>
     </hint>
     <hint type="destinationlabel">
      <x>60</x>
-     <y>750</y>
+     <y>882</y>
     </hint>
    </hints>
   </connection>
@@ -2319,7 +2340,7 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1101</x>
+     <x>1135</x>
      <y>43</y>
     </hint>
     <hint type="destinationlabel">
@@ -2371,8 +2392,8 @@
      <y>43</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1152</x>
-     <y>848</y>
+     <x>1178</x>
+     <y>979</y>
     </hint>
    </hints>
   </connection>
@@ -2383,12 +2404,12 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1110</x>
-     <y>838</y>
+     <x>1136</x>
+     <y>969</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1138</x>
-     <y>841</y>
+     <x>1164</x>
+     <y>972</y>
     </hint>
    </hints>
   </connection>
@@ -2399,8 +2420,8 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1085</x>
-     <y>844</y>
+     <x>1111</x>
+     <y>975</y>
     </hint>
     <hint type="destinationlabel">
      <x>577</x>
@@ -2415,8 +2436,8 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1089</x>
-     <y>835</y>
+     <x>1115</x>
+     <y>966</y>
     </hint>
     <hint type="destinationlabel">
      <x>16</x>
@@ -2431,11 +2452,11 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1092</x>
-     <y>854</y>
+     <x>1118</x>
+     <y>985</y>
     </hint>
     <hint type="destinationlabel">
-     <x>395</x>
+     <x>425</x>
      <y>50</y>
     </hint>
    </hints>
@@ -2447,12 +2468,28 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1165</x>
-     <y>845</y>
+     <x>1191</x>
+     <y>976</y>
     </hint>
     <hint type="destinationlabel">
      <x>77</x>
      <y>22</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hideIdsCheckBox</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>hideAllPacketsButton</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>961</x>
+     <y>343</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>962</x>
+     <y>368</y>
     </hint>
    </hints>
   </connection>

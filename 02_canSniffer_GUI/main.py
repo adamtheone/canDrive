@@ -2,6 +2,7 @@
 import serial
 import canSniffer_ui
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, QHeaderView, QFileDialog
+from PyQt5.QtWidgets import QVBoxLayout, QSizeGrip
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 import serial.tools.list_ports
@@ -475,6 +476,13 @@ def main():
 
     qtmodern.styles.dark(app)
     darked_gui = qtmodern.windows.ModernWindow(gui)
+
+    # adding a grip to the top left corner to make the frameless window resizable
+    layout = QVBoxLayout()
+    sizegrip = QSizeGrip(darked_gui)
+    sizegrip.setMaximumSize(30, 30)
+    layout.addWidget(sizegrip, 50, Qt.AlignBottom | Qt.AlignRight)
+    darked_gui.setLayout(layout)
 
     darked_gui.show()
     app.exec_()

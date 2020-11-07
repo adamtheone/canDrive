@@ -483,12 +483,15 @@ def exception_hook(exctype, value, traceback):
     sys.exit(1)
 
 def main():
+    # excepthook redirect
     sys._excepthook = sys.excepthook
     sys.excepthook = exception_hook
 
+    # creating app
     app = QApplication(sys.argv)
     gui = canSnifferGUI()
 
+    #applying dark theme
     qtmodern.styles.dark(app)
     darked_gui = qtmodern.windows.ModernWindow(gui)
 
@@ -499,6 +502,7 @@ def main():
     layout.addWidget(sizegrip, 50, Qt.AlignBottom | Qt.AlignRight)
     darked_gui.setLayout(layout)
 
+    #starting the app
     darked_gui.show()
     app.exec_()
 

@@ -17,6 +17,8 @@ class SerialReaderThread(QThread):
     def run(self):
         self.isRunning = True
         while self.isRunning:
+            # Because of the high transmission speed, we shouldn't assume that the internal serial buffer
+            # will only contain one package at a time, so I split that buffer by end line characters.
             i = self.buf.find(b"\n")
             if i >= 0:
                 r = self.buf[:i + 1]

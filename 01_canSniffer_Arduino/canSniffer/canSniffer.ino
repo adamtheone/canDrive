@@ -46,14 +46,15 @@ void printHex(int num) {
 }
 
 void printPacket(packet_t * packet) {
-  // packet format (hex string): [ID],[RTR],[IDE],[DLC],[DATABYTES 0..8B]\n
-  // example: 014A,00,00,07,1A002B003C004D\n
+  // packet format (hex string): [ID],[RTR],[IDE],[DATABYTES 0..8B]\n
+  // example: 014A,00,00,1A002B003C004D\n
   printHex(packet->id);
   Serial.print(SEPARATOR);
   printHex(packet->rtr);
   Serial.print(SEPARATOR);
   printHex(packet->ide);
   Serial.print(SEPARATOR);
+  // DLC is determinded by number of data bytes, format: [00]
   for (int i = 0; i < packet->dlc; i++) {
     printHex(packet->dataArray[i]);
   }

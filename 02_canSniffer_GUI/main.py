@@ -1,7 +1,7 @@
 # canDrive @ 2020
 import serial
 import canSniffer_ui
-from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, QHeaderView, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, QHeaderView, QFileDialog, QRadioButton
 from PyQt5.QtWidgets import QVBoxLayout, QSizeGrip
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -102,6 +102,17 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.stopPlayBackButton.setVisible(False)
         self.playBackProgressBar.setVisible(False)
 
+    def setRadioButton(self, radioButton:QRadioButton, mode):
+        radioButton.setAutoExclusive(False)
+        if mode == 0:
+            radioButton.setChecked(False)
+        if mode == 1:
+            radioButton.setChecked(True)
+        if mode == 2:
+            radioButton.setChecked(not radioButton.isChecked())
+        radioButton.setAutoExclusive(True)
+        QApplication.processEvents()
+
     def playbackMainTable1Packet(self):
         row = self.playbackMainTableIndex
 
@@ -201,6 +212,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                 self.mainMessageTableWidget.setRowHidden(i, True)
 
     def sendTxTableCallback(self):
+        self.setRadioButton(self.txDataRadioButton, 2)
         for row in range(self.txTable.rowCount()):
             if self.txTable.item(row, 0).isSelected():
                 txBuf = ""
@@ -272,7 +284,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                     writer.writerow(rowData)
 
     def mainTablePopulatorCallback(self, rowData):
-        self.rxDataRadioButton.setChecked(True)
+        self.setRadioButton(self.rxDataRadioButton, 2)
+
         if self.showOnlyIdsCheckBox.isChecked():
             if str(rowData[1]) not in self.showOnlyIdsSet:
                 return
@@ -337,7 +350,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
         self.receivedPackets = self.receivedPackets + 1
         self.packageCounterLabel.setText(str(self.receivedPackets))
-        self.rxDataRadioButton.setChecked(False)
 
 
     def loadTableFromFile(self, table, path):
@@ -357,6 +369,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                         for i in range(len(rowData)):
                             if len(rowData[i]):
                                 item = QTableWidgetItem(str(rowData[i]))
+                                if not (table == self.decodedMessagesTableWidget and i == 0):
+                                    item.setTextAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
                                 table.setItem(row, i, item)
             except OSError:
                 print("file not found: " + path)
@@ -406,6 +420,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.stopSniffingButton.setEnabled(False)
         self.sendTxTableButton.setEnabled(False)
         self.activeChannelComboBox.setEnabled(True)
+        self.setRadioButton(self.rxDataRadioButton, 0)
 
     def serialPacketReceiverCallback(self, packet):
         if self.startSniffingButton.isEnabled():
@@ -420,7 +435,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         rowData = [str(time.time() - self.startTime)[:7]]  # timestamp
         rowData += packetSplit[0:3]  # IDE, RTR, EXT
         DLC = len(packetSplit[3]) // 2
-        rowData += str(DLC)  # DLC
+        rowData.append(str("{:02X}".format(DLC)))  # DLC
         if DLC > 0:
             rowData += [packetSplit[3][i:i + 2] for i in range(0, len(packetSplit[3]), 2)]  # data
 

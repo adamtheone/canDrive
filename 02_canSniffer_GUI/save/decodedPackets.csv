@@ -1,0 +1,106 @@
+cabin light on,252,00,00,08,07,AE,03,80,00,00,00,00
+front left window up,259,00,00,08,04,AE,02,08,08,00,00,00
+front left window down,259,00,00,08,04,AE,02,08,10,00,00,00
+front left window stop,259,00,00,08,04,AE,02,08,00,00,00,00
+rear right door,230 (RearLeftDoor),00,00,05,00,10,10,00,00,,,
+exit test mode,255,00,00,08,02,AA,00,00,00,00,00,00
+fuel indicator min,255,00,00,08,07,AE,01,04,04,00,82,00
+windows locked,415 (RightWindow),00,00,05,80,00,00,00,00,,,
+windows not locked (idle),415 (RightWindow),00,00,05,00,00,00,00,00,,,
+right mirror left,405 (FrontLeftDoor),00,00,06,00,01,00,10,00,00,,
+right mirror right,405 (FrontLeftDoor),00,00,06,00,02,00,10,00,00,,
+right mirror up,405 (FrontLeftDoor),00,00,06,00,04,00,10,00,00,,
+righ mirror down,405 (FrontLeftDoor),00,00,06,00,08,00,10,00,00,,
+left mirror active,405 (FrontLeftDoor),00,00,06,00,00,00,08,00,00,,
+right mirror active,405 (FrontLeftDoor),00,00,06,00,00,00,10,00,00,,
+rear left window up,415 (RightWindow),00,00,05,00,00,20,1B,F0,,,
+rear left window down,415 (RightWindow),00,00,05,00,00,40,1B,F0,,,
+rear right window,415 (RightWindow),00,00,05,00,00,02,1B,F0,,,
+rear right window up,415 (RightWindow),00,00,05,00,00,04,1B,F0,,,
+front right window up,415 (RightWindow),00,00,05,00,02,00,1B,F0,,,
+front right window down,415 (RightWindow),00,00,05,00,04,00,1B,F0,,,
+right window idle,415 (RightWindow),00,00,05,00,00,00,00,00,,,
+rear left door close,230 (RearLeftDoor),00,00,05,00,00,00,00,00,,,
+rear left door open,230 (RearLeftDoor),00,00,05,00,40,00,00,00,,,
+front right close,420 (FrontRightDoor),00,00,05,00,00,00,00,00,,,
+front right open,420 (FrontRightDoor),00,00,05,00,00,40,00,00,,,
+front left open,405 (FrontLeftDoor),00,00,06,00,00,20,00,00,00,,
+front left close,405 (FrontLeftDoor),00,00,06,00,00,00,00,00,00,,
+lights low beam,350 (FrontFogLight),00,00,02,06,00,,,,,,
+lights off,23A (LightSwitch),00,00,03,00,00,00,,,,,
+lights pos indicator,23A (LightSwitch),00,00,03,00,20,00,,,,,
+lights low beam,23A (LightSwitch),00,00,03,00,A0,00,,,,,
+lights auto,23A (LightSwitch),00,00,03,04,00,00,,,,,
+lights high beam,350 (FrontFogLight),00,00,02,46,00,,,,,,
+turning light left,260 (TurningLight),00,00,03,25,40,80,,,,,
+turning light right,260 (TurningLight),00,00,03,3A,40,80,,,,,
+jam indicator,260 (TurningLight),00,00,03,1F,40,80,,,,,
+turning light idle,260 (TurningLight),00,00,03,00,40,80,,,,,
+window cleaner roller min,175 (WheelJoys),00,00,08,00,00,00,00,33,00,00,00
+window cleaner roller max,175 (WheelJoys),00,00,08,00,00,00,00,CC,00,00,00
+break idle,360 (Break),00,00,03,00,00,00,,,,,
+break pushed,360 (Break),00,00,03,00,00,40,,,,,
+Pedals idle(d2 increment),115 (Pedals),00,00,03,20,FF,50,,,,,
+Pedals break,115 (Pedals),00,00,03,28,FF,60,,,,,
+Pedals clutch,115 (Pedals),00,00,03,24,FF,10,,,,,
+handbreak released,220 (Handbreak),00,00,01,08,,,,,,,
+handbreak locked,220 (Handbreak),00,00,01,18,,,,,,,
+window heating,23A (LightSwitch),00,00,03,00,03,00,,,,,
+850,108 (RPM),00,00,08,11,0D,44,00,00,00,00,00
+1500,108 (RPM),00,00,08,21,18,78,00,00,00,00,00
+AC ON,155 (Climate),00,00,03,80,00,30,,,,,
+AC OFF,155 (Climate),00,00,03,00,00,2C,,,,,
+wheel right vol down,175 (WheelJoys),00,00,08,00,00,00,00,CC,02,00,1F
+wheel right vol up,175 (WheelJoys),00,00,08,00,00,00,00,CC,01,00,01
+wheel right btn down,175 (WheelJoys),00,00,08,00,00,00,00,CC,05,00,00
+wheel right btn up,175 (WheelJoys),00,00,08,00,00,00,00,CC,04,00,00
+wheel left select up,175 (WheelJoys),00,00,08,00,00,00,00,CC,10,1F,00
+wheel left select down,175 (WheelJoys),00,00,08,00,00,00,00,CC,20,01,00
+wheel left select push,175 (WheelJoys),00,00,08,00,00,00,00,CC,30,00,00
+wheel left lower btn,175 (WheelJoys),00,00,08,00,00,00,00,CC,50,00,00
+wheel left upper btn,175 (WheelJoys),00,00,08,00,00,00,00,CC,40,00,00
+doors locked,230 (RearLeftDoor),00,00,05,05,00,00,00,00,,,
+dorrs unlocked,230 (RearLeftDoor),00,00,05,00,00,00,00,00,,,
+trunk unlock short,405 (FrontLeftDoor),00,00,06,00,00,00,04,00,00,,
+trunk unlock long,405 (FrontLeftDoor),00,00,06,00,00,00,06,00,00,,
+wheel joys idle,175 (WheelJoys),00,00,08,00,00,00,00,CC,00,00,00
+right front window up btn,415 (RightWindow),00,00,05,00,00,00,00,00,,,
+right front window down btn,415 (RightWindow),00,00,05,00,04,00,1B,F0,,,
+right rear window down btn,415 (RightWindow),00,00,05,00,00,04,1B,F0,,,
+right rear window up btn,415 (RightWindow),00,00,05,00,00,02,1B,F0,,,
+left rear window down btn,415 (RightWindow),00,00,05,00,00,40,1B,F0,,,
+left rear window up btn,415 (RightWindow),00,00,05,00,00,20,1B,F0,,,
+brightness_value(0-ff),235 (brightness),00,00,02,00,6A,,,,,,
+front fog on,350 (FrontFogLight),00,00,02,26,00,,,,,,
+front fog off,350 (FrontFogLight),00,00,02,06,00,,,,,,
+MSpeed middle knob left,201,00,00,03,08,6A,FF,,,,,
+MSpeed middle knob right,201,00,00,03,08,6A,01,,,,,
+MSpeed middle knob pushed_D2:inkrement,201,00,00,03,01,6B,2A,,,,,
+MSpeed NAVI btn,201,00,00,03,01,E0,0B,,,,,
+RPM,255,00,00,08,07,AE,01,02,02,00,17,70
+RPM,255,00,00,08,07,AE,01,01,01,00,00,F9
+coolant,255,00,00,08,07,AE,01,08,08,00,A7,00
+fuel indicator max,255,08,07,AE,01,04,04,00,28,00,,
+symbol test lock,255,00,00,08,07,AE,06,01,01,00,08,00
+front right window full down,258,00,00,08,04,AE,02,08,08,00,00,00
+front right window full up,258,00,00,08,04,AE,02,08,10,00,00,00
+position indicator light test ON,253 (UEC),00,00,08,06,AE,02,0C,00,0C,00,00
+position indicator light test OFF,253 (UEC),00,00,08,06,AE,02,0C,00,00,00,00
+low beam light test ON,253 (UEC),00,00,08,06,AE,02,C0,00,C0,00,00
+low beam light test ON,253 (UEC),00,00,08,06,AE,02,C0,00,00,00,00
+fog light test ON,253 (UEC),00,00,08,06,AE,02,00,0C,00,0C,00
+fog light test OFF,253 (UEC),00,00,08,06,AE,02,00,0C,00,00,00
+high beam light test ON,253 (UEC),00,00,08,06,AE,02,30,00,30,00,00
+high beam light test OFF,253 (UEC),00,00,08,06,AE,02,30,00,00,00,00
+turning light test ON,253 (UEC),00,00,08,06,AE,02,03,00,03,00,00
+turning light test OFF,253 (UEC),00,00,08,06,AE,02,03,00,00,00,00
+open - only front left,160 (Remote),00,00,04,01,10,7D,28,,,,
+doors close,160 (Remote),00,00,04,01,40,7D,28,,,,
+all doors open,160 (Remote),00,00,04,01,20,7D,28,,,,
+long press close,160 (Remote),00,00,04,01,C0,7D,28,,,,
+long press open,160 (Remote),00,00,04,01,30,7D,28,,,,
+trunk open 1x,160 (Remote),00,00,04,01,04,7D,28,,,,
+trunk open 2x,160 (Remote),00,00,04,01,08,7D,28,,,,
+trunk open long press,160 (Remote),00,00,04,01,0C,7D,28,,,,
+Immo ignition,621 (Immo),00,00,08,00,48,50,00,00,00,00,00
+before ignition,621 (Immo),00,00,08,00,20,00,00,00,00,00,00

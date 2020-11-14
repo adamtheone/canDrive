@@ -1,4 +1,6 @@
 # canDrive @ 2020
+# To create a one-file executable, call: pyinstaller -F main.spec
+#----------------------------------------------------------------
 import serial
 import canSniffer_ui
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, QHeaderView, QFileDialog, QRadioButton

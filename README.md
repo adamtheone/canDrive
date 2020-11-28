@@ -1,6 +1,10 @@
 # canDrive
 Tools for hacking your car. Please concider checking out the tutorials made about this project:
 https://www.youtube.com/playlist?list=PLNiFaO8hU1z0o_6DSxk-jcVAM3UCUR-pY
+
+I've created this google sheet, so everybody can freely add their decoded IDs and packets, so it's easier for the community to collaborate:
+https://docs.google.com/spreadsheets/d/1eBKiTwEE6aPnfw2EfSHItLeMz00fJq0Y0L99Ym7fKwU/edit?usp=sharing
+
 # Content
 - 01_canSniffer_Arduino: This code runs on your arduino sniffer device and creates an interface between the car and the GUI.
 - 02_canSniffer_GUI: Powerful and easy-to-use graphical sniffer application used for reverse engineering CAN packets. 

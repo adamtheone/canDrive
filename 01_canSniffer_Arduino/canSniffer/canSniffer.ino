@@ -18,11 +18,11 @@
 //        - MCP2515.h: 16e6 clock frequency reduced to 8e6 (depending on MCP2515 clock)
 //        - MCP2515.cpp: extend CNF_MAPPER with your desired CAN speeds
 //------------------------------------------------------------------------------
-#include <CAN.h>
+#include "CAN.h"
 //------------------------------------------------------------------------------
 // Settings
-#define RANDOM_CAN 1
-#define CAN_SPEED (33E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra)
+#define RANDOM_CAN 0
+#define CAN_SPEED (125E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra)
 //------------------------------------------------------------------------------
 // Inits, globals
 typedef struct {
@@ -48,7 +48,9 @@ void printHex(int num) {
 void printPacket(packet_t * packet) {
   // packet format (hex string): [ID],[RTR],[IDE],[DATABYTES 0..8B]\n
   // example: 014A,00,00,1A002B003C004D\n
+  if (!packet->ide){
   printHex(packet->id);
+  }
   Serial.print(SEPARATOR);
   printHex(packet->rtr);
   Serial.print(SEPARATOR);
@@ -92,7 +94,15 @@ void onCANReceive(int packetSize) {
   rxPacket.id = CAN.packetId();
   rxPacket.rtr = CAN.packetRtr() ? 1 : 0;
   rxPacket.ide = CAN.packetExtended() ? 1 : 0;
+  int ide=CAN.packetExtended() ? 1 : 0;
   rxPacket.dlc = CAN.packetDlc();
+  if (ide){
+  long id = CAN.packetId();
+  if (id < 10000000){
+    Serial.print ("0");
+  }
+  Serial.print(id, HEX);
+  }
   byte i = 0;
   while (CAN.available()) {
     rxPacket.dataArray[i++] = CAN.read();

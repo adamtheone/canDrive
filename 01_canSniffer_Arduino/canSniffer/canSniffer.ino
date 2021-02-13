@@ -39,14 +39,7 @@ const char RXBUF_LEN = 100;
 //------------------------------------------------------------------------------
 // Printing a packet to serial
 void printHex(long num) {
-  for ( int i = 1; i <= 7 ; i+=2){
-    long upperBound = (long)1 << (i * 4);
-    long lowerBound = (upperBound - 1) >> 4;
-    if ((num == 0x0) || (num > lowerBound && num < upperBound)){ 
-      Serial.print("0"); // Clever check if leading zero should be stuffed
-      break;
-    }
-  }
+  if ( num < 0x10 ){ Serial.print("0"); }
   Serial.print(num, HEX);
 }
 

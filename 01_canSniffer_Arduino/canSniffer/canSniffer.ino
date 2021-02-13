@@ -22,7 +22,7 @@
 //------------------------------------------------------------------------------
 // Settings
 #define RANDOM_CAN 1
-#define CAN_SPEED (33E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra)
+#define CAN_SPEED (500E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra)
 //------------------------------------------------------------------------------
 // Inits, globals
 typedef struct {
@@ -39,11 +39,13 @@ const char RXBUF_LEN = 100;
 //------------------------------------------------------------------------------
 // Printing a packet to serial
 void printHex(long num) {
-  // Clever check if leading zero should be stuffed
   for ( int i = 1; i <= 7 ; i+=2){
-    long upperBound = 1 << (i * 4); 
+    long upperBound = (long)1 << (i * 4);
     long lowerBound = (upperBound - 1) >> 4;
-    if (num > lowerBound && num < upperBound){ Serial.print("0");}
+    if ((num == 0x0) || (num > lowerBound && num < upperBound)){ 
+      Serial.print("0"); // Clever check if leading zero should be stuffed
+      break;
+    }
   }
   Serial.print(num, HEX);
 }
@@ -68,13 +70,13 @@ void printPacket(packet_t * packet) {
 void CANsimulate(void) {
   packet_t txPacket;
 
-  int sampleIdList[] = {0x110, 0x115, 0x23A, 0x257, 0x501, 0x601, 0x621};
+  long sampleIdList[] = {0x110, 0x18DAF111, 0x23A, 0x257, 0x412F1A1, 0x601, 0x18EA0C11};
   int idIndex = random (sizeof(sampleIdList) / sizeof(sampleIdList[0]));
   int sampleData[] = {0xA, 0x1B, 0x2C, 0x3D, 0x4E, 0x5F, 0xA0, 0xB1};
 
   txPacket.id = sampleIdList[idIndex];
-  txPacket.ide = txPacket.id > 2047 ? 1 : 0;
-  txPacket.rtr = random(2);
+  txPacket.ide = txPacket.id > 0x7FF ? 1 : 0;
+  txPacket.rtr = 0; //random(2);
   txPacket.dlc = random(1, 9);
 
   for (int i = 0; i < txPacket.dlc ; i++) {

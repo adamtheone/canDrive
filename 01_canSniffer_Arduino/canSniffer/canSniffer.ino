@@ -26,7 +26,7 @@
 //------------------------------------------------------------------------------
 // Inits, globals
 typedef struct {
-  unsigned int id;
+  long id;
   byte rtr;
   byte ide;
   byte dlc;
@@ -38,9 +38,12 @@ const char TERMINATOR = '\n';
 const char RXBUF_LEN = 100;
 //------------------------------------------------------------------------------
 // Printing a packet to serial
-void printHex(int num) {
-  if (num < 0x10) {
-    Serial.print("0");
+void printHex(long num) {
+  // Clever check if leading zero should be stuffed
+  for ( int i = 1; i <= 7 ; i+=2){
+    long upperBound = 1 << (i * 4); 
+    long lowerBound = (upperBound - 1) >> 4;
+    if (num > lowerBound && num < upperBound){ Serial.print("0");}
   }
   Serial.print(num, HEX);
 }
@@ -106,7 +109,11 @@ void onCANReceive(int packetSize) {
 void sendPacketToCan(packet_t * packet) {
   for (int retries = 10; retries > 0; retries--) {
     bool rtr = packet->rtr ? true : false;
-    CAN.beginPacket(packet->id, packet->dlc, rtr);
+    if (packet->ide){
+      CAN.beginExtendedPacket(packet->id, packet->dlc, rtr);
+    } else {
+      CAN.beginPacket(packet->id, packet->dlc, rtr);
+    }
     CAN.write(packet->dataArray, packet->dlc);
     if (CAN.endPacket()) {
       // success
@@ -141,7 +148,7 @@ void rxParse(char * buf, int len) {
   // All elements have to have leading zero!
 
   // ID
-  byte idTempArray[4], tempLen;
+  byte idTempArray[8], tempLen;
   ptr = strToHex(ptr, idTempArray, &tempLen);
   rxPacket.id = 0;
   for (int i = 0; i < tempLen; i++) {

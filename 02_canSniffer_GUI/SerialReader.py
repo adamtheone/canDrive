@@ -1,9 +1,10 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 import serial
+import time
 
 
 class SerialReaderThread(QThread):
-    receivedPacketSignal = pyqtSignal(str)
+    receivedPacketSignal = pyqtSignal(str, float)
     buf = bytearray()
 
     def __init__(self, serial=None):
@@ -26,7 +27,7 @@ class SerialReaderThread(QThread):
                 # print(r.decode("utf-8"))
                 try:
                     decodedData = r.decode("utf-8")
-                    self.receivedPacketSignal.emit(decodedData)
+                    self.receivedPacketSignal.emit(decodedData, time.time())
                 except UnicodeDecodeError as e:
                     print(e)
             try:

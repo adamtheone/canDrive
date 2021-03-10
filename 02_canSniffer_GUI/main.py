@@ -284,7 +284,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                     writer.writerow(rowData)
 
     def mainTablePopulatorCallback(self, rowData):
-        self.setRadioButton(self.rxDataRadioButton, 2)
 
         if self.showOnlyIdsCheckBox.isChecked():
             if str(rowData[1]) not in self.showOnlyIdsSet:
@@ -427,7 +426,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.activeChannelComboBox.setEnabled(True)
         self.setRadioButton(self.rxDataRadioButton, 0)
 
-    def serialPacketReceiverCallback(self, packet):
+    def serialPacketReceiverCallback(self, packet, time):
         if self.startSniffingButton.isEnabled():
             return
         packetSplit = packet[:-1].split(',')
@@ -437,7 +436,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.snifferMsgPlainTextEdit.document().setPlainText(packet)
             return
 
-        rowData = [str(time.time() - self.startTime)[:7]]  # timestamp
+        rowData = [str(time - self.startTime)[:7]]  # timestamp
         rowData += packetSplit[0:3]  # IDE, RTR, EXT
         DLC = len(packetSplit[3]) // 2
         rowData.append(str("{:02X}".format(DLC)))  # DLC

@@ -22,11 +22,11 @@
 //------------------------------------------------------------------------------
 // Settings
 #define RANDOM_CAN 1
-#define CAN_SPEED (33E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra)
+#define CAN_SPEED (500E3) //LOW=33E3, MID=95E3, HIGH=500E3 (for Vectra)
 //------------------------------------------------------------------------------
 // Inits, globals
 typedef struct {
-  unsigned int id;
+  long id;
   byte rtr;
   byte ide;
   byte dlc;
@@ -38,10 +38,8 @@ const char TERMINATOR = '\n';
 const char RXBUF_LEN = 100;
 //------------------------------------------------------------------------------
 // Printing a packet to serial
-void printHex(int num) {
-  if (num < 0x10) {
-    Serial.print("0");
-  }
+void printHex(long num) {
+  if ( num < 0x10 ){ Serial.print("0"); }
   Serial.print(num, HEX);
 }
 
@@ -65,13 +63,13 @@ void printPacket(packet_t * packet) {
 void CANsimulate(void) {
   packet_t txPacket;
 
-  int sampleIdList[] = {0x110, 0x115, 0x23A, 0x257, 0x501, 0x601, 0x621};
+  long sampleIdList[] = {0x110, 0x18DAF111, 0x23A, 0x257, 0x412F1A1, 0x601, 0x18EA0C11};
   int idIndex = random (sizeof(sampleIdList) / sizeof(sampleIdList[0]));
   int sampleData[] = {0xA, 0x1B, 0x2C, 0x3D, 0x4E, 0x5F, 0xA0, 0xB1};
 
   txPacket.id = sampleIdList[idIndex];
-  txPacket.ide = txPacket.id > 2047 ? 1 : 0;
-  txPacket.rtr = random(2);
+  txPacket.ide = txPacket.id > 0x7FF ? 1 : 0;
+  txPacket.rtr = 0; //random(2);
   txPacket.dlc = random(1, 9);
 
   for (int i = 0; i < txPacket.dlc ; i++) {
@@ -106,7 +104,11 @@ void onCANReceive(int packetSize) {
 void sendPacketToCan(packet_t * packet) {
   for (int retries = 10; retries > 0; retries--) {
     bool rtr = packet->rtr ? true : false;
-    CAN.beginPacket(packet->id, packet->dlc, rtr);
+    if (packet->ide){
+      CAN.beginExtendedPacket(packet->id, packet->dlc, rtr);
+    } else {
+      CAN.beginPacket(packet->id, packet->dlc, rtr);
+    }
     CAN.write(packet->dataArray, packet->dlc);
     if (CAN.endPacket()) {
       // success
@@ -141,7 +143,7 @@ void rxParse(char * buf, int len) {
   // All elements have to have leading zero!
 
   // ID
-  byte idTempArray[4], tempLen;
+  byte idTempArray[8], tempLen;
   ptr = strToHex(ptr, idTempArray, &tempLen);
   rxPacket.id = 0;
   for (int i = 0; i < tempLen; i++) {

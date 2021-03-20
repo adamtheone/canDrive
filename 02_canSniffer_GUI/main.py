@@ -163,7 +163,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         newItem = QTableWidgetItem(newId[0])
         self.txTable.setItem(newRow, 0, QTableWidgetItem(newItem))
         for i in range(1, 3):
-            self.txTable.setItem(newRow, i, self.decodedMessagesTableWidget.item(decodedCurrentRow, i+1))
+            self.txTable.setItem(newRow, i, QTableWidgetItem(self.decodedMessagesTableWidget.item(decodedCurrentRow, i+1)))
         newData = ""
         for i in range(int(self.decodedMessagesTableWidget.item(decodedCurrentRow, 4).text())):
             newData += str(self.decodedMessagesTableWidget.item(decodedCurrentRow, 5 + i).text())
@@ -246,8 +246,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
     def newTxTableRowCallback(self):
         newRow = 0
         self.txTable.insertRow(newRow)
-        self.txTable.setItem(newRow, 1, QTableWidgetItem("00"))
-        self.txTable.setItem(newRow, 2, QTableWidgetItem("00"))
 
     def showOnlyIdsTextChanged(self):
         self.showOnlyIdsSet.clear()
@@ -286,7 +284,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                     writer.writerow(rowData)
 
     def mainTablePopulatorCallback(self, rowData):
-        self.setRadioButton(self.rxDataRadioButton, 2)
 
         if self.showOnlyIdsCheckBox.isChecked():
             if str(rowData[1]) not in self.showOnlyIdsSet:
@@ -414,10 +411,11 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.sendTxTableButton.setEnabled(True)
         self.activeChannelComboBox.setEnabled(False)
 
-        txBuf = [0x42, self.activeChannelComboBox.currentIndex()]   # TX FORWARDER
-        self.serialWriterThread.write(txBuf)
-        txBuf = [0x41, 1 << self.activeChannelComboBox.currentIndex()]  # RX FORWARDER
-        self.serialWriterThread.write(txBuf)
+        if self.activeChannelComboBox.isEnabled():
+            txBuf = [0x42, self.activeChannelComboBox.currentIndex()]   # TX FORWARDER
+            self.serialWriterThread.write(txBuf)
+            txBuf = [0x41, 1 << self.activeChannelComboBox.currentIndex()]  # RX FORWARDER
+            self.serialWriterThread.write(txBuf)
 
         self.startTime = time.time()
 
@@ -428,7 +426,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.activeChannelComboBox.setEnabled(True)
         self.setRadioButton(self.rxDataRadioButton, 0)
 
-    def serialPacketReceiverCallback(self, packet):
+    def serialPacketReceiverCallback(self, packet, time):
         if self.startSniffingButton.isEnabled():
             return
         packetSplit = packet[:-1].split(',')
@@ -438,7 +436,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.snifferMsgPlainTextEdit.document().setPlainText(packet)
             return
 
-        rowData = [str(time.time() - self.startTime)[:7]]  # timestamp
+        rowData = [str(time - self.startTime)[:7]]  # timestamp
         rowData += packetSplit[0:3]  # IDE, RTR, EXT
         DLC = len(packetSplit[3]) // 2
         rowData.append(str("{:02X}".format(DLC)))  # DLC
@@ -477,6 +475,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             print('Error closing port: ' + str(e))
 
     def scanPorts(self):
+        self.portSelectorComboBox.clear()
         comPorts = serial.tools.list_ports.comports()
         nameList = list(port.device for port in comPorts)
         for name in nameList:

@@ -1203,7 +1203,7 @@ class Ui_MainWindow(object):
         self.repeatedDelayCheckBox.setText(_translate("MainWindow", "Repeated Delay"))
         self.groupBox_3.setTitle(_translate("MainWindow", "Status"))
         self.txDataRadioButton.setText(_translate("MainWindow", "Transmitting data"))
-        self.serialConnectedCheckBox.setText(_translate("MainWindow", "Conntected to sniffer"))
+        self.serialConnectedCheckBox.setText(_translate("MainWindow", "Connected to sniffer"))
         self.label_2.setText(_translate("MainWindow", "Packet from Sniffer:"))
         self.rxDataRadioButton.setText(_translate("MainWindow", "Receiving data"))
         self.packageCounterLabel.setText(_translate("MainWindow", "0"))

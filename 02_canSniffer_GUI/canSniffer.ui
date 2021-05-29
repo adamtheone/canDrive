@@ -2109,7 +2109,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Conntected to sniffer</string>
+            <string>Connected to sniffer</string>
            </property>
            <property name="checkable">
             <bool>true</bool>

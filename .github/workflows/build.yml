@@ -1,0 +1,29 @@
+name: Build GUI Application
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Get Tag
+      id: vars
+      run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+    - name: Build Application
+      uses: JackMcKew/pyinstaller-action-windows@main
+      with:
+        path: 02_canSniffer_GUI
+        spec: main.spec
+    - name: Rename Application
+      run: mv 02_canSniffer_GUI/dist/windows/main.exe 02_canSniffer_GUI/dist/windows/canDrive-${{ steps.vars.outputs.tag }}.exe
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: canDrive-${{ steps.vars.outputs.tag }}-windows
+        files: 02_canSniffer_GUI/dist/windows/canDrive-${{ steps.vars.outputs.tag }}.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

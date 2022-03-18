@@ -147,7 +147,7 @@ void rxParse(char * buf, int len) {
   ptr = strToHex(ptr, idTempArray, &tempLen);
   rxPacket.id = 0;
   for (int i = 0; i < tempLen; i++) {
-    rxPacket.id |= idTempArray[i] << ((tempLen - i - 1) * 8);
+    rxPacket.id |= (long)idTempArray[i] << ((tempLen - i - 1) * 8);
   }
 
   // RTR

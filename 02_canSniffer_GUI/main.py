@@ -70,6 +70,9 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.hideOldPacketsThread.enable(5)
         self.hideOldPacketsThread.start()
 
+        # If the timestamp of the exported decoded list is in millisec, it's compatible with SavvyCan's GVRET format.
+        self.exportDecodedListInMillisecTimestamp = False
+
         self.scanPorts()
         self.startTime = 0
         self.receivedPackets = 0
@@ -134,7 +137,10 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         if row < maxRows - 1:
             dt = float(self.mainMessageTableWidget.item(row, 0).text()) - float(
                 self.mainMessageTableWidget.item(row + 1, 0).text())
-            dt = abs(int(dt * 1000))
+            sec_to_ms = 1000
+            if '.' not in self.mainMessageTableWidget.item(row, 0).text():
+                sec_to_ms = 1       # timestamp already in ms
+            dt = abs(int(dt * sec_to_ms))
             self.serialWriterThread.setNormalWriteDelay(dt)
         self.playBackProgressBar.setValue(int((maxRows - row) / maxRows * 100))
         self.playbackMainTableIndex -= 1
@@ -278,7 +284,13 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                     for column in range(table.columnCount()):
                         item = table.item(row, column)
                         if item is not None:
-                            rowData.append(str(item.text()))
+                            tempItem = item.text()
+                            if self.exportDecodedListInMillisecTimestamp and column == 0:
+                                timeSplit = item.text().split('.')
+                                sec = timeSplit[0]
+                                ms = timeSplit[1][0:3]
+                                tempItem = sec + ms
+                            rowData.append(str(tempItem))
                         else:
                             rowData.append('')
                     writer.writerow(rowData)

@@ -5,7 +5,7 @@ import serial
 import canSniffer_ui
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, QHeaderView, QFileDialog, QRadioButton
 from PyQt5.QtWidgets import QVBoxLayout, QSizeGrip
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QCoreApplication
 from PyQt5.QtGui import QColor
 import serial.tools.list_ports
 
@@ -187,10 +187,24 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
     def deleteDecodedLineCallback(self):
         self.decodedMessagesTableWidget.removeRow(self.decodedMessagesTableWidget.currentRow())
 
+    def addColumnToTable(self, table):
+        colCount = table.columnCount()
+        table.insertColumn(colCount)
+        table.setColumnWidth(colCount, 32)
+        headItem = QTableWidgetItem()
+        headItem.setTextAlignment(Qt.AlignCenter)
+        table.setHorizontalHeaderItem(colCount, headItem)
+        newCol = table.horizontalHeaderItem(colCount)
+        if newCol is not None:
+            newCol.setText(QCoreApplication.translate("MainWindow", 'D%d' % int(colCount-5)))
+
     def addToDecodedCallback(self):
         newRow = self.decodedMessagesTableWidget.rowCount()
         self.decodedMessagesTableWidget.insertRow(newRow)
-        for i in range(1, self.decodedMessagesTableWidget.columnCount()):
+        for i in range(1, self.mainMessageTableWidget.columnCount()):
+            if i >= self.decodedMessagesTableWidget.columnCount():
+                self.addColumnToTable(self.decodedMessagesTableWidget)
+
             new_item = QTableWidgetItem(self.mainMessageTableWidget.item(self.mainMessageTableWidget.currentRow(), i))
             self.decodedMessagesTableWidget.setItem(newRow, i, new_item)
 
@@ -321,24 +335,26 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         if self.mainMessageTableWidget.isRowHidden(row):
             self.mainMessageTableWidget.setRowHidden(row, False)
 
-        for i in range(self.mainMessageTableWidget.columnCount()):
-            if i < len(rowData):
-                data = str(rowData[i])
-                item = self.mainMessageTableWidget.item(row, i)
-                newItem = QTableWidgetItem(data)
-                if item:
-                    if item.text() != data:
-                        if self.highlightNewDataCheckBox.isChecked() and \
-                                self.groupModeCheckBox.isChecked() and \
-                                i > 4:
-                            newItem.setBackground(QColor(104, 37, 98))
-                else:
+        for i in range(len(rowData)):
+            colCount = self.mainMessageTableWidget.columnCount()
+            if i >= colCount:
+                self.addColumnToTable(self.mainMessageTableWidget)
+
+            data = str(rowData[i])
+            item = self.mainMessageTableWidget.item(row, i)
+            newItem = QTableWidgetItem(data)
+            if item:
+                if item.text() != data:
                     if self.highlightNewDataCheckBox.isChecked() and \
                             self.groupModeCheckBox.isChecked() and \
                             i > 4:
                         newItem.setBackground(QColor(104, 37, 98))
             else:
-                newItem = QTableWidgetItem()
+                if self.highlightNewDataCheckBox.isChecked() and \
+                        self.groupModeCheckBox.isChecked() and \
+                        i > 4:
+                    newItem.setBackground(QColor(104, 37, 98))
+
             self.mainMessageTableWidget.setItem(row, i, newItem)
 
         isFamiliar = False
@@ -355,7 +371,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.mainMessageTableWidget.setItem(row, 1, QTableWidgetItem(value))
             isFamiliar = True
 
-        for i in range(self.mainMessageTableWidget.columnCount()):
+        for i in range(len(rowData)):
             if (isFamiliar or (newId.find("(") >= 0)) and i < 3:
                 self.mainMessageTableWidget.item(row, i).setBackground(QColor(53, 81, 52))
 
@@ -380,6 +396,9 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                         row = table.rowCount()
                         table.insertRow(row)
                         for i in range(len(rowData)):
+                            if table == self.decodedMessagesTableWidget and i >= table.columnCount():
+                                self.addColumnToTable(table)
+
                             if len(rowData[i]):
                                 item = QTableWidgetItem(str(rowData[i]))
                                 if not (table == self.decodedMessagesTableWidget and i == 0):

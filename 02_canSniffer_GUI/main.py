@@ -1,6 +1,6 @@
 # canDrive @ 2020
 # To create a one-file executable, call: pyinstaller -F main.spec
-#----------------------------------------------------------------
+# ----------------------------------------------------------------
 import serial
 import canSniffer_ui
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, QHeaderView, QFileDialog, QRadioButton
@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QVBoxLayout, QSizeGrip
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 import serial.tools.list_ports
+import can
 
 import sys
 import os
@@ -20,18 +21,20 @@ import csv
 import HideOldPackets
 import SerialReader
 import SerialWriter
+import SocketCanReader
+import SocketCanWriter
 import FileLoader
 
-QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
-QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
+QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # enable highdpi scaling
+QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)  # use highdpi icons
 
 class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
     def __init__(self):
         super(canSnifferGUI, self).__init__()
         self.setupUi(self)
         self.portScanButton.clicked.connect(self.scanPorts)
-        self.portConnectButton.clicked.connect(self.serialPortConnect)
-        self.portDisconnectButton.clicked.connect(self.serialPortDisconnect)
+        self.portConnectButton.clicked.connect(self.portConnect)
+        self.portDisconnectButton.clicked.connect(self.portDisconnect)
         self.startSniffingButton.clicked.connect(self.startSniffing)
         self.stopSniffingButton.clicked.connect(self.stopSniffing)
         self.saveSelectedIdInDictButton.clicked.connect(self.saveIdLabelToDictCallback)
@@ -40,7 +43,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.showOnlyIdsLineEdit.textChanged.connect(self.showOnlyIdsTextChanged)
         self.hideIdsLineEdit.textChanged.connect(self.hideIdsTextChanged)
         self.clearLabelDictButton.clicked.connect(self.clearLabelDict)
-        self.serialController = serial.Serial()
+        self.canController = None
         self.mainMessageTableWidget.cellClicked.connect(self.cellWasClicked)
         self.newTxTableRow.clicked.connect(self.newTxTableRowCallback)
         self.removeTxTableRow.clicked.connect(self.removeTxTableRowCallback)
@@ -57,9 +60,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.hideAllPacketsButton.clicked.connect(self.hideAllPackets)
         self.showControlsButton.hide()
 
-        self.serialWriterThread = SerialWriter.SerialWriterThread(self.serialController)
-        self.serialReaderThread = SerialReader.SerialReaderThread(self.serialController)
-        self.serialReaderThread.receivedPacketSignal.connect(self.serialPacketReceiverCallback)
+        self.canWriterThread = None
+        self.canReaderThread = None
         self.fileLoaderThread = FileLoader.FileLoaderThread()
         self.fileLoaderThread.newRowSignal.connect(self.mainTablePopulatorCallback)
         self.fileLoaderThread.loadingFinishedSignal.connect(self.fileLoadingFinishedCallback)
@@ -109,7 +111,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.stopPlayBackButton.setVisible(False)
         self.playBackProgressBar.setVisible(False)
 
-    def setRadioButton(self, radioButton:QRadioButton, mode):
+    def setRadioButton(self, radioButton: QRadioButton, mode):
         radioButton.setAutoExclusive(False)
         if mode == 0:
             radioButton.setChecked(False)
@@ -141,7 +143,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                 self.mainMessageTableWidget.item(row + 1, 0).text())
             sec_to_ms = 1000
             if '.' not in self.mainMessageTableWidget.item(row, 0).text():
-                sec_to_ms = 1       # timestamp already in ms
+                sec_to_ms = 1  # timestamp already in ms
             dt = abs(int(dt * sec_to_ms))
             self.serialWriterThread.setNormalWriteDelay(dt)
         self.playBackProgressBar.setValue(int((maxRows - row) / maxRows * 100))
@@ -171,7 +173,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         newItem = QTableWidgetItem(newId[0])
         self.txTable.setItem(newRow, 0, QTableWidgetItem(newItem))
         for i in range(1, 3):
-            self.txTable.setItem(newRow, i, QTableWidgetItem(self.decodedMessagesTableWidget.item(decodedCurrentRow, i+1)))
+            self.txTable.setItem(newRow, i,
+                                 QTableWidgetItem(self.decodedMessagesTableWidget.item(decodedCurrentRow, i + 1)))
         newData = ""
         for i in range(int(self.decodedMessagesTableWidget.item(decodedCurrentRow, 4).text())):
             newData += str(self.decodedMessagesTableWidget.item(decodedCurrentRow, 5 + i).text())
@@ -281,7 +284,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         if path != '':
             with open(str(path), 'w', newline='') as stream:
                 writer = csv.writer(stream)
-                for row in range(table.rowCount()-1, -1, -1):
+                for row in range(table.rowCount() - 1, -1, -1):
                     rowData = []
                     for column in range(table.columnCount()):
                         item = table.item(row, column)
@@ -364,7 +367,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.receivedPackets = self.receivedPackets + 1
         self.packageCounterLabel.setText(str(self.receivedPackets))
 
-
     def loadTableFromFile(self, table, path):
         if path is None:
             path, _ = QFileDialog.getOpenFileName(self, 'Open File', './save', 'CSV(*.csv)')
@@ -398,7 +400,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.saveTableToFile(self.mainMessageTableWidget, None)
 
     def cellWasClicked(self):
-        self.saveIdToDictLineEdit.setText(self.mainMessageTableWidget.item(self.mainMessageTableWidget.currentRow(), 1).text())
+        self.saveIdToDictLineEdit.setText(
+            self.mainMessageTableWidget.item(self.mainMessageTableWidget.currentRow(), 1).text())
 
     def saveIdLabelToDictCallback(self):
         if (not self.saveIdToDictLineEdit.text()) or (not self.saveLabelToDictLineEdit.text()):
@@ -426,7 +429,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.activeChannelComboBox.setEnabled(False)
 
         if self.activeChannelComboBox.isEnabled():
-            txBuf = [0x42, self.activeChannelComboBox.currentIndex()]   # TX FORWARDER
+            txBuf = [0x42, self.activeChannelComboBox.currentIndex()]  # TX FORWARDER
             self.serialWriterThread.write(txBuf)
             txBuf = [0x41, 1 << self.activeChannelComboBox.currentIndex()]  # RX FORWARDER
             self.serialWriterThread.write(txBuf)
@@ -459,41 +462,108 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
         self.mainTablePopulatorCallback(rowData)
 
+    def portConnect(self):
+        selectedPort = self.portSelectorComboBox.currentText()
+        if self.isSerialPort(selectedPort):
+            self.serialPortConnect()
+        else:  # I assume the selection is a SocketCAN interface
+            self.socketCanPortConnect()
+
     def serialPortConnect(self):
         try:
-            self.serialController.port = self.portSelectorComboBox.currentText()
-            self.serialController.baudrate = 250000
-            self.serialController.open()
-            self.serialReaderThread.start()
-            self.serialWriterThread.start()
-            self.serialConnectedCheckBox.setChecked(True)
-            self.portDisconnectButton.setEnabled(True)
-            self.portConnectButton.setEnabled(False)
-            self.startSniffingButton.setEnabled(True)
-            self.stopSniffingButton.setEnabled(False)
+            self.createSerialController()
+            self.canWriterThread = SerialWriter.SerialWriterThread(self.canController)
+            self.canReaderThread = SerialReader.SerialReaderThread(self.canController)
+            self.canReaderThread.receivedPacketSignal.connect(self.serialPacketReceiverCallback)
+            self.onPortConnect()
         except serial.SerialException as e:
             print('Error opening port: ' + str(e))
 
-    def serialPortDisconnect(self):
-        if self.stopSniffingButton.isEnabled():
-            self.stopSniffing()
+    def socketCanPortConnect(self):
         try:
-            self.serialReaderThread.stop()
-            self.serialWriterThread.stop()
-            self.portDisconnectButton.setEnabled(False)
-            self.portConnectButton.setEnabled(True)
-            self.startSniffingButton.setEnabled(False)
-            self.serialConnectedCheckBox.setChecked(False)
-            self.serialController.close()
+            self.createSocketCanController()
+            self.onPortConnect()
+        except can.CanError as e:
+            print('Error opening SocketCAN interface: ' + str(e))
+
+    def onPortConnect(self):
+        self.canReaderThread.start()
+        self.canWriterThread.start()
+        self.serialConnectedCheckBox.setChecked(True)
+        self.portDisconnectButton.setEnabled(True)
+        self.portConnectButton.setEnabled(False)
+        self.startSniffingButton.setEnabled(True)
+        self.stopSniffingButton.setEnabled(False)
+
+    def createSerialController(self):
+        selectedPort = self.portSelectorComboBox.currentText()
+
+        self.canController = serial.Serial()
+        self.canController.port = selectedPort
+        self.canController.baudrate = 250000
+        # Other settings for the serial controller, if needed
+        self.canController.open()
+
+    def createSocketCanController(self):
+        selectedPort = self.portSelectorComboBox.currentText()
+        self.connectSocketCan(selectedPort, 1000000)
+        self.canController = can.interface.Bus(channel=selectedPort, bustype='socketcan')
+        self.canWriterThread = SocketCanWriter.SocketCanWriterThread(self.canController)
+        self.canReaderThread = SocketCanReader.SocketCanReaderThread(self.canController)
+        # Other settings for the CAN controller, if needed
+
+    def connectSocketCan(self, port, bitrate):
+        if not bitrate:
+            bitrate = 1000000
+        os.system('sudo ifconfig ' + port + ' down')
+        os.system('sudo ip link set ' + port + ' type can bitrate ' + str(bitrate))
+        os.system('sudo ifconfig ' + port + ' up')
+
+    def portDisconnect(self):
+        selectedPort = self.portSelectorComboBox.currentText()
+        if self.isSerialPort(selectedPort):
+            self.serialPortDisconnect()
+        else:  # I assume the selection is a SocketCAN interface
+            self.socketCanPortDisconnect(selectedPort)
+
+    def serialPortDisconnect(self):
+        self.onPortDisconnect()
+        try:
+            self.canController.close()
         except serial.SerialException as e:
             print('Error closing port: ' + str(e))
 
+    def socketCanPortDisconnect(self, port):
+        os.system('sudo ifconfig ' + port + ' down')
+        self.onPortDisconnect()
+
+
+    def onPortDisconnect(self):
+        if self.stopSniffingButton.isEnabled():
+            self.stopSniffing()
+        self.canReaderThread.stop()
+        self.canWriterThread.stop()
+        self.portDisconnectButton.setEnabled(False)
+        self.portConnectButton.setEnabled(True)
+        self.startSniffingButton.setEnabled(False)
+        self.serialConnectedCheckBox.setChecked(False)
+
+    def isSerialPort(self, port):
+        if port.startswith("COM") or port.startswith("/dev/tty"):
+            return True
+        else:
+            return False
     def scanPorts(self):
         self.portSelectorComboBox.clear()
+
+        # Scan serial ports
         comPorts = serial.tools.list_ports.comports()
-        nameList = list(port.device for port in comPorts)
+        nameList = [port.device for port in comPorts]
         for name in nameList:
             self.portSelectorComboBox.addItem(name)
+
+        # TODO: Scan SocketCAN interfaces
+        self.portSelectorComboBox.addItem('can0')
 
 
 def exception_hook(exctype, value, traceback):
@@ -510,7 +580,7 @@ def main():
     app = QApplication(sys.argv)
     gui = canSnifferGUI()
 
-    #applying dark theme
+    # applying dark theme
     qtmodern.styles.dark(app)
     darked_gui = qtmodern.windows.ModernWindow(gui)
 
@@ -521,7 +591,7 @@ def main():
     layout.addWidget(sizegrip, 50, Qt.AlignBottom | Qt.AlignRight)
     darked_gui.setLayout(layout)
 
-    #starting the app
+    # starting the app
     darked_gui.show()
     app.exec_()
 

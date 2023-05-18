@@ -4,6 +4,7 @@ import can
 import time
 
 class SocketCanReaderThread(QThread):
+    receivedPacketSignal = pyqtSignal(str, float)
 
     def __init__(self, bus=None):
         super(SocketCanReaderThread, self).__init__()

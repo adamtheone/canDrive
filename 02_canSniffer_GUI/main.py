@@ -103,10 +103,10 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
     def stopPlayBackCallback(self):
         try:
-            self.serialWriterThread.packetSentSignal.disconnect()
+            self.canWriterThread.packetSentSignal.disconnect()
         except:
             pass
-        self.serialWriterThread.clearQueues()
+        self.canWriterThread.clearQueues()
         self.playbackMainTableButton.setVisible(True)
         self.stopPlayBackButton.setVisible(False)
         self.playBackProgressBar.setVisible(False)
@@ -145,20 +145,20 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             if '.' not in self.mainMessageTableWidget.item(row, 0).text():
                 sec_to_ms = 1  # timestamp already in ms
             dt = abs(int(dt * sec_to_ms))
-            self.serialWriterThread.setNormalWriteDelay(dt)
+            self.canWriterThread.setNormalWriteDelay(dt)
         self.playBackProgressBar.setValue(int((maxRows - row) / maxRows * 100))
         self.playbackMainTableIndex -= 1
 
-        self.serialWriterThread.write(txBuf)
+        self.canWriterThread.write(txBuf)
 
     def playbackMainTableCallback(self):
         self.playbackMainTableButton.setVisible(False)
         self.stopPlayBackButton.setVisible(True)
         self.playBackProgressBar.setVisible(True)
         self.playbackMainTableIndex = self.mainMessageTableWidget.rowCount() - 1
-        self.serialWriterThread.setRepeatedWriteDelay(0)
+        self.canWriterThread.setRepeatedWriteDelay(0)
         print('playing back...')
-        self.serialWriterThread.packetSentSignal.connect(self.playbackMainTable1Packet)
+        self.canWriterThread.packetSentSignal.connect(self.playbackMainTable1Packet)
         self.playbackMainTable1Packet()
 
     def clearTableCallback(self):
@@ -236,10 +236,10 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
                     txBuf += subStr
                 txBuf = txBuf[:-1] + '\n'
                 if self.repeatedDelayCheckBox.isChecked():
-                    self.serialWriterThread.setRepeatedWriteDelay(self.repeatTxDelayValue.value())
+                    self.canWriterThread.setRepeatedWriteDelay(self.repeatTxDelayValue.value())
                 else:
-                    self.serialWriterThread.setRepeatedWriteDelay(0)
-                self.serialWriterThread.write(txBuf)
+                    self.canWriterThread.setRepeatedWriteDelay(0)
+                self.canWriterThread.write(txBuf)
 
     def fileLoadingFinishedCallback(self):
         self.abortSessionLoadingButton.setEnabled(False)
@@ -430,9 +430,9 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
         if self.activeChannelComboBox.isEnabled():
             txBuf = [0x42, self.activeChannelComboBox.currentIndex()]  # TX FORWARDER
-            self.serialWriterThread.write(txBuf)
+            self.canWriterThread.write(txBuf)
             txBuf = [0x41, 1 << self.activeChannelComboBox.currentIndex()]  # RX FORWARDER
-            self.serialWriterThread.write(txBuf)
+            self.canWriterThread.write(txBuf)
 
         self.startTime = time.time()
 

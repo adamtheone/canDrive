@@ -534,7 +534,9 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             print('Error closing port: ' + str(e))
 
     def socketCanPortDisconnect(self, port):
-        os.system('sudo ifconfig ' + port + ' down')
+        command = 'sudo ifconfig ' + port + ' down'
+        print(command)
+        os.system(command)
         self.onPortDisconnect()
 
 

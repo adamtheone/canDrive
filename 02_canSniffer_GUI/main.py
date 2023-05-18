@@ -427,6 +427,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.stopSniffingButton.setEnabled(True)
         self.sendTxTableButton.setEnabled(True)
         self.activeChannelComboBox.setEnabled(False)
+        if self.canReaderThread:
+            self.canReaderThread.start()
 
         if self.activeChannelComboBox.isEnabled():
             txBuf = [0x42, self.activeChannelComboBox.currentIndex()]  # TX FORWARDER
@@ -442,6 +444,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.sendTxTableButton.setEnabled(False)
         self.activeChannelComboBox.setEnabled(True)
         self.setRadioButton(self.rxDataRadioButton, 0)
+        self.canReaderThread.stop()
 
     def serialPacketReceiverCallback(self, packet, time):
         if self.startSniffingButton.isEnabled():
@@ -518,6 +521,9 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         os.system('sudo ifconfig ' + port + ' down')
         os.system('sudo ip link set ' + port + ' type can bitrate ' + str(bitrate))
         os.system('sudo ifconfig ' + port + ' up')
+        if self.canReaderThread:
+            self.canReaderThread.start()
+            self.canWriterThread.start()
 
     def portDisconnect(self):
         selectedPort = self.portSelectorComboBox.currentText()
@@ -534,6 +540,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             print('Error closing port: ' + str(e))
 
     def socketCanPortDisconnect(self, port):
+        self.canReaderThread.stop()
+        self.canWriterThread.stop()
         command = 'sudo ifconfig ' + port + ' down'
         print(command)
         os.system(command)

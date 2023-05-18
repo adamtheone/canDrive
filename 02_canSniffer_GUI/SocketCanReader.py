@@ -11,6 +11,9 @@ class SocketCanReaderThread(QThread):
         self.bus = bus
         self.isRunning = False
 
+    def isRunning(self) -> bool:
+        return self.isRunning
+
     def stop(self):
         self.isRunning = False
 

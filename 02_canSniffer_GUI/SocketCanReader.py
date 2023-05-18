@@ -21,7 +21,8 @@ class SocketCanReaderThread(QThread):
         self.isRunning = True
         while self.isRunning:
             try:
-                message = self.bus.recv()
+                message = self.bus.recv(timeout=0.1)
+                print(message)
             except can.CanError as e:
                 print(e)
                 continue

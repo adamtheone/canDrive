@@ -1147,7 +1147,6 @@ class Ui_MainWindow(object):
         self.playbackMainTableButton.setText(_translate("MainWindow", "Playback all messages"))
         self.stopPlayBackButton.setText(_translate("MainWindow", "Stop playback"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Message window"))
-
         self.decodedMessagesTableWidget.setSortingEnabled(True)
         item = self.decodedMessagesTableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Label"))

@@ -35,7 +35,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.portScanButton.clicked.connect(self.scanPorts)
         self.portConnectButton.clicked.connect(self.portConnect)
         self.portDisconnectButton.clicked.connect(self.portDisconnect)
-        self.startSniffingButton.clicked.connect(self.startSniffing)
+        self.startSniffingButton.clicked.connect(self.startCanSniffing)
         self.stopSniffingButton.clicked.connect(self.stopSniffing)
         self.saveSelectedIdInDictButton.clicked.connect(self.saveIdLabelToDictCallback)
         self.saveSessionToFileButton.clicked.connect(self.saveSessionToFile)
@@ -427,8 +427,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.stopSniffingButton.setEnabled(True)
         self.sendTxTableButton.setEnabled(True)
         self.activeChannelComboBox.setEnabled(False)
-        if self.canReaderThread:
-            self.canReaderThread.start()
 
         if self.activeChannelComboBox.isEnabled():
             txBuf = [0x42, self.activeChannelComboBox.currentIndex()]  # TX FORWARDER
@@ -438,6 +436,46 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
         self.startTime = time.time()
 
+    def startCanSniffing(self):
+        print('startCanSniffing')
+        if self.canReaderThread:
+            print('self.canReaderThread.start()')
+            self.canReaderThread.start()
+        if self.autoclearCheckBox.isChecked():
+            print('self.autoclearCheckBox.isChecked()')
+            self.idDict.clear()
+            self.mainMessageTableWidget.setRowCount(0)
+        self.startSniffingButton.setEnabled(False)
+        self.stopSniffingButton.setEnabled(True)
+        self.sendTxTableButton.setEnabled(True)
+        self.activeChannelComboBox.setEnabled(False)
+        if self.activeChannelComboBox.isEnabled():
+            print('self.activeChannelComboBox.isEnabled()')
+            msg = can.Message(arbitration_id=0x42, data=self.activeChannelComboBox.currentIndex())
+            print(msg)
+            txBuf = [0x42, self.activeChannelComboBox.currentIndex()]  # TX FORWARDER
+            print(txBuf)
+            self.printConsole(txBuf)
+            self.canWriterThread.write(msg)
+            msg = can.Message(arbitration_id=0x42, data=1<<self.activeChannelComboBox.currentIndex())
+            print(msg)
+            txBuf = [0x41, 1 << self.activeChannelComboBox.currentIndex()]  # RX FORWARDER
+            print(txBuf)
+            self.printConsole(txBuf)
+            self.canWriterThread.write(msg)
+
+        self.startTime = time.time()
+
+    def printConsole(self, element):
+        if isinstance(element, list):
+            print('list')
+            print(bytearray(element))
+        else:
+            print('utf')
+            print(element.encode("utf-8"))
+
+
+
     def stopSniffing(self):
         self.startSniffingButton.setEnabled(True)
         self.stopSniffingButton.setEnabled(False)
@@ -446,7 +484,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.setRadioButton(self.rxDataRadioButton, 0)
         self.canReaderThread.stop()
 
-    def serialPacketReceiverCallback(self, packet, time):
+    def canPacketReceiverCallback(self, packet, time):
         if self.startSniffingButton.isEnabled():
             return
         packetSplit = packet[:-1].split(',')
@@ -477,7 +515,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.createSerialController()
             self.canWriterThread = SerialWriter.SerialWriterThread(self.canController)
             self.canReaderThread = SerialReader.SerialReaderThread(self.canController)
-            self.canReaderThread.receivedPacketSignal.connect(self.serialPacketReceiverCallback)
             self.onPortConnect()
         except serial.SerialException as e:
             print('Error opening port: ' + str(e))
@@ -497,6 +534,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.portConnectButton.setEnabled(False)
         self.startSniffingButton.setEnabled(True)
         self.stopSniffingButton.setEnabled(False)
+        self.canReaderThread.receivedPacketSignal.connect(self.canPacketReceiverCallback)
 
     def createSerialController(self):
         selectedPort = self.portSelectorComboBox.currentText()
@@ -520,6 +558,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             bitrate = 1000000
         os.system('sudo ifconfig ' + port + ' down')
         os.system('sudo ip link set ' + port + ' type can bitrate ' + str(bitrate))
+        os.system('sudo ifconfig ' + port + ' txqueuelen 100000')
         os.system('sudo ifconfig ' + port + ' up')
         if self.canReaderThread:
             self.canReaderThread.start()

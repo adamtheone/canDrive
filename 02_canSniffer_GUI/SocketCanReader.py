@@ -22,13 +22,11 @@ class SocketCanReaderThread(QThread):
         while self.isRunning:
             try:
                 message = self.bus.recv(timeout=0.1)
-                print(message)
             except can.CanError as e:
                 print(e)
                 continue
 
             if message is not None:
-                decodedData = message.data.hex()
-                self.receivedPacketSignal.emit(decodedData, time.time())
+                self.receivedPacketSignal.emit(message, time.time())
                     
         self.msleep(100)

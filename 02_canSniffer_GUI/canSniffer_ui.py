@@ -1147,6 +1147,7 @@ class Ui_MainWindow(object):
         self.playbackMainTableButton.setText(_translate("MainWindow", "Playback all messages"))
         self.stopPlayBackButton.setText(_translate("MainWindow", "Stop playback"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Message window"))
+
         self.decodedMessagesTableWidget.setSortingEnabled(True)
         item = self.decodedMessagesTableWidget.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Label"))
@@ -1177,6 +1178,7 @@ class Ui_MainWindow(object):
         self.groupBox_2.setTitle(_translate("MainWindow", "Operations"))
         self.deleteDecodedPacketLinePushButton.setText(_translate("MainWindow", "Delete selected line"))
         self.sendSelectedDecodedPacketButton.setText(_translate("MainWindow", "Send selected packet"))
+
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Decoded messages"))
         self.idLabelDictTable.setSortingEnabled(True)
         item = self.idLabelDictTable.horizontalHeaderItem(0)

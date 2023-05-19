@@ -569,7 +569,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
     def createSocketCanController(self):
         selectedPort = self.portSelectorComboBox.currentText()
-        self.connectSocketCan(selectedPort, 1000000)
+        self.connectSocketCan(selectedPort, 500000)
         self.canController = can.interface.Bus(channel=selectedPort, bustype='socketcan')
         self.canWriterThread = SocketCanWriter.SocketCanWriterThread(self.canController)
         self.canReaderThread = SocketCanReader.SocketCanReaderThread(self.canController)
@@ -577,7 +577,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
     def connectSocketCan(self, port, bitrate):
         if not bitrate:
-            bitrate = 1000000
+            bitrate = 500000
         os.system('sudo ifconfig ' + port + ' down')
         os.system('sudo ip link set ' + port + ' type can bitrate ' + str(bitrate))
         os.system('sudo ifconfig ' + port + ' txqueuelen 100000')

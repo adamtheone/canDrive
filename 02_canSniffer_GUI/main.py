@@ -421,6 +421,14 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.saveTableToFile(self.idLabelDictTable, "save/labelDict.csv")
 
     def startSniffing(self):
+        selectedPort = self.portSelectorComboBox.currentText()
+        if self.isSerialPort(selectedPort):
+            self.startSerialSniffing()
+        else:  # I assume the selection is a SocketCAN interface
+            self.startCanSniffing()
+        self.canReaderThread.receivedPacketSignal.connect(self.packetReceiverCallback)
+
+    def startSerialSniffing(self):
         if self.autoclearCheckBox.isChecked():
             self.idDict.clear()
             self.mainMessageTableWidget.setRowCount(0)
@@ -452,6 +460,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.activeChannelComboBox.setEnabled(False)
         if self.activeChannelComboBox.isEnabled():
             print('self.activeChannelComboBox.isEnabled()')
+            print(self.activeChannelComboBox)
+            print(self.activeChannelComboBox.currentIndex())
             msg = can.Message(arbitration_id=0x42, data=self.activeChannelComboBox.currentIndex())
             print(msg)
             txBuf = [0x42, self.activeChannelComboBox.currentIndex()]  # TX FORWARDER
@@ -483,6 +493,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.sendTxTableButton.setEnabled(False)
         self.activeChannelComboBox.setEnabled(True)
         self.setRadioButton(self.rxDataRadioButton, 0)
+        self.canReaderThread.receivedPacketSignal.disconnect()
         self.canReaderThread.stop()
 
     def packetReceiverCallback(self, packet, time):
@@ -556,7 +567,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.portConnectButton.setEnabled(False)
         self.startSniffingButton.setEnabled(True)
         self.stopSniffingButton.setEnabled(False)
-        self.canReaderThread.receivedPacketSignal.connect(self.packetReceiverCallback)
 
     def createSerialController(self):
         selectedPort = self.portSelectorComboBox.currentText()

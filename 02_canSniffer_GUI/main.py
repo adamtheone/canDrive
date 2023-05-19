@@ -219,7 +219,11 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         for i in range(self.mainMessageTableWidget.rowCount()):
             if self.mainMessageTableWidget.isRowHidden(i):
                 continue
-            packetTime = float(self.mainMessageTableWidget.item(i, 0).text())
+            timestamp = self.mainMessageTableWidget.item(i, 0).text()
+            timestamp = timestamp.replace("'","")
+            timestamp = timestamp.replace("[","")
+            timestamp = timestamp.replace("]","")
+            packetTime = float(timestamp)
             if (time.time() - self.startTime) - packetTime > self.hideOldPeriod.value():
                 # print("Hiding: " + str(self.mainMessageTableWidget.item(i,1).text()))
                 # print(time.time() - self.start_time)

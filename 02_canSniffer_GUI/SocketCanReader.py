@@ -1,10 +1,11 @@
  
 from PyQt5.QtCore import QThread, pyqtSignal
 import can
+from can import Message
 import time
 
 class SocketCanReaderThread(QThread):
-    receivedPacketSignal = pyqtSignal(str, float)
+    receivedPacketSignal = pyqtSignal(Message, float)
 
     def __init__(self, bus=None):
         super(SocketCanReaderThread, self).__init__()
@@ -22,7 +23,6 @@ class SocketCanReaderThread(QThread):
         while self.isRunning:
             try:
                 message = self.bus.recv(timeout=0.1)
-                print(message)
             except can.CanError as e:
                 print(e)
                 continue

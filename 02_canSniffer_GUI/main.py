@@ -23,6 +23,7 @@ import SerialReader
 import SerialWriter
 import SocketCanReader
 import SocketCanWriter
+import MainTableData
 import FileLoader
 
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # enable highdpi scaling
@@ -35,7 +36,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.portScanButton.clicked.connect(self.scanPorts)
         self.portConnectButton.clicked.connect(self.portConnect)
         self.portDisconnectButton.clicked.connect(self.portDisconnect)
-        self.startSniffingButton.clicked.connect(self.startCanSniffing)
+        self.startSniffingButton.clicked.connect(self.startSniffing)
         self.stopSniffingButton.clicked.connect(self.stopSniffing)
         self.saveSelectedIdInDictButton.clicked.connect(self.saveIdLabelToDictCallback)
         self.saveSessionToFileButton.clicked.connect(self.saveSessionToFile)
@@ -484,7 +485,14 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.setRadioButton(self.rxDataRadioButton, 0)
         self.canReaderThread.stop()
 
-    def canPacketReceiverCallback(self, packet, time):
+    def packetReceiverCallback(self, packet, time):
+        selectedPort = self.portSelectorComboBox.currentText()
+        if self.isSerialPort(selectedPort):
+            self.serialPacketReceiverCallback(packet, time)
+        else:  # I assume the selection is a SocketCAN interface
+            self.socketCanPacketReceiverCallback(packet, time)
+
+    def serialPacketReceiverCallback(self, packet, time):
         if self.startSniffingButton.isEnabled():
             return
         packetSplit = packet[:-1].split(',')
@@ -502,6 +510,20 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             rowData += [packetSplit[3][i:i + 2] for i in range(0, len(packetSplit[3]), 2)]  # data
 
         self.mainTablePopulatorCallback(rowData)
+
+    def socketCanPacketReceiverCallback(self, message, time):
+        timestamp = [str(time - self.startTime)[:7]]  # timestamp
+
+        if message.is_extended_id:
+            ID = f"{message.arbitration_id:08x}"
+        else:
+            ID = f"{message.arbitration_id:04x}"
+        RTR = "01 " if message.is_remote_frame else "00"
+        IDE = "01 " if message.is_extended_id else "00"
+        DLC = message.dlc
+        DATA = [f"{x:02x}" for x in message.data[:DLC]]
+        data = MainTableData.MainTableData(timestamp, ID, RTR, IDE, DLC, DATA)
+        self.mainTablePopulatorCallback(data.getRowData())
 
     def portConnect(self):
         selectedPort = self.portSelectorComboBox.currentText()
@@ -534,7 +556,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.portConnectButton.setEnabled(False)
         self.startSniffingButton.setEnabled(True)
         self.stopSniffingButton.setEnabled(False)
-        self.canReaderThread.receivedPacketSignal.connect(self.canPacketReceiverCallback)
+        self.canReaderThread.receivedPacketSignal.connect(self.packetReceiverCallback)
 
     def createSerialController(self):
         selectedPort = self.portSelectorComboBox.currentText()

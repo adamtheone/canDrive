@@ -1,3 +1,5 @@
+from can import Message
+
 class MainTableData:
     def __init__(self, timestamp, ID, RTR, IDE, DLC, DATA_ARRAY):
         self.timestamp = timestamp
@@ -8,4 +10,45 @@ class MainTableData:
         self.DATA_ARRAY = DATA_ARRAY
 
     def getRowData(self):
-        return [self.timestamp, self.ID, self.RTR, self.IDE, str("{:02X}".format(self.DLC)), *self.DATA_ARRAY]
+        return [self.timestamp, self.ID, self.RTR, self.IDE, self.DLC, *self.DATA_ARRAY]
+
+
+    @classmethod
+    def fromMessage(cls, message):
+        timestamp = str(message.timestamp)[:7]  # Truncate to desired precision
+        if message.is_extended_id:
+            ID = f"{message.arbitration_id:08x}"
+        else:
+            ID = f"{message.arbitration_id:04x}"
+        RTR = "01" if message.is_remote_frame else "00"
+        IDE = "01" if message.is_extended_id else "00"
+        DLC = str("{:02X}".format(message.dlc))
+        DATA_ARRAY = [f"{x:02x}" for x in message.data]
+        return cls(timestamp, ID, RTR, IDE, DLC, DATA_ARRAY)
+
+
+
+    @classmethod
+    def fromRowData(cls, rowData):
+        timestamp, ID, RTR, EXT, DLC = rowData[:5]
+        DATA = rowData[5:]
+        return cls(timestamp, ID, RTR, EXT, DLC, DATA)
+    @classmethod
+    def fromTxRowData(cls, rowData):
+        ID, RTR, EXT, DLC = rowData[:4]
+        DATA = rowData[4:]
+        return cls(None, ID, RTR, EXT, DLC, DATA)
+
+
+    def toMessage(self):
+        timestamp = float(self.timestamp) if self.timestamp is not None else 0.0
+        is_extended_id = self.IDE == "01"
+        # To exclude label
+        self.ID = self.ID.split(' ')[0].strip()
+        arbitration_id = int(self.ID, 16)
+        is_remote_frame = self.RTR == "01"
+        dlc = int(self.DLC)
+        data = [int(x, 16) for x in self.DATA_ARRAY]
+        message = Message(timestamp=timestamp, arbitration_id=arbitration_id, is_extended_id=is_extended_id,
+                              is_remote_frame=is_remote_frame, dlc=dlc, data=data)
+        return message

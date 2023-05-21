@@ -14,7 +14,7 @@ class SocketCanWriterThread(QThread):
         self.bus = bus
         self.isRunning = False
 
-    def clearQueue(self):
+    def clearQueues(self):
         self.writerQ.clear()
 
     def stop(self):

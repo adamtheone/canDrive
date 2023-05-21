@@ -124,6 +124,13 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         QApplication.processEvents()
 
     def playbackMainTable1Packet(self):
+        selectedPort = self.portSelectorComboBox.currentText()
+        if self.isSerialPort(selectedPort):
+            self.serialPlaybackMainTable1Packet()
+        else:  # I assume the selection is a SocketCAN interface
+            self.socketCanPlaybackMainTable1Packet()
+
+    def serialPlaybackMainTable1Packet(self):
         row = self.playbackMainTableIndex
 
         if row < 0:
@@ -151,6 +158,40 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.playbackMainTableIndex -= 1
 
         self.canWriterThread.write(txBuf)
+
+
+    def socketCanPlaybackMainTable1Packet(self):
+        row = self.playbackMainTableIndex
+
+        if row < 0:
+            self.stopPlayBackCallback()
+            return
+        maxRows = self.mainMessageTableWidget.rowCount()
+        rowData = self.getRowDataFromTable(self.mainMessageTableWidget, row)
+        message = MainTableData.MainTableData.fromRowData(rowData).toMessage()
+        if row < maxRows - 1:
+            dt = float(self.mainMessageTableWidget.item(row, 0).text()) - float(
+                self.mainMessageTableWidget.item(row + 1, 0).text())
+            sec_to_ms = 1000
+            if '.' not in self.mainMessageTableWidget.item(row, 0).text():
+                sec_to_ms = 1  # timestamp already in ms
+            dt = abs(int(dt * sec_to_ms))
+            self.canWriterThread.setNormalWriteDelay(dt)
+        self.playBackProgressBar.setValue(int((maxRows - row) / maxRows * 100))
+        self.playbackMainTableIndex -= 1
+
+        self.canWriterThread.write(message)
+
+    def getRowDataFromTable(self, table, row):
+        row_data = []
+        column_count = table.columnCount()
+        for column in range(column_count):
+            item = table.item(row, column)
+            if item is not None:
+                row_data.append(item.text())
+            else:
+                row_data.append('')
+        return row_data
 
     def playbackMainTableCallback(self):
         self.playbackMainTableButton.setVisible(False)
@@ -220,9 +261,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             if self.mainMessageTableWidget.isRowHidden(i):
                 continue
             timestamp = self.mainMessageTableWidget.item(i, 0).text()
-            timestamp = timestamp.replace("'","")
-            timestamp = timestamp.replace("[","")
-            timestamp = timestamp.replace("]","")
             packetTime = float(timestamp)
             if (time.time() - self.startTime) - packetTime > self.hideOldPeriod.value():
                 # print("Hiding: " + str(self.mainMessageTableWidget.item(i,1).text()))
@@ -233,18 +271,35 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.setRadioButton(self.txDataRadioButton, 2)
         for row in range(self.txTable.rowCount()):
             if self.txTable.item(row, 0).isSelected():
-                txBuf = ""
-                for i in range(self.txTable.columnCount()):
-                    subStr = self.txTable.item(row, i).text() + ","
-                    if not len(subStr) % 2:
-                        subStr = '0' + subStr
-                    txBuf += subStr
-                txBuf = txBuf[:-1] + '\n'
+                txToSend = self.getTxMessageToSend(row)
                 if self.repeatedDelayCheckBox.isChecked():
                     self.canWriterThread.setRepeatedWriteDelay(self.repeatTxDelayValue.value())
                 else:
                     self.canWriterThread.setRepeatedWriteDelay(0)
-                self.canWriterThread.write(txBuf)
+                self.canWriterThread.write(txToSend)
+
+    def getTxMessageToSend(self, row):
+        selectedPort = self.portSelectorComboBox.currentText()
+        if self.isSerialPort(selectedPort):
+            txToSend = self.getSerialTxMessage(row)
+        else:
+            txToSend = self.getSocketCanTxMessage(row)
+        return txToSend
+
+    def getSerialTxMessage(self, row):
+        txBuf = ""
+        for i in range(self.txTable.columnCount()):
+            subStr = self.txTable.item(row, i).text() + ","
+            if not len(subStr) % 2:
+                subStr = '0' + subStr
+            txBuf += subStr
+        txBuf = txBuf[:-1] + '\n'
+        return txBuf
+
+    def getSocketCanTxMessage(self, row):
+        rowData = self.getRowDataFromTable(self.txTable, row)
+        data = MainTableData.MainTableData.fromTxRowData(rowData)
+        return data.toMessage()
 
     def fileLoadingFinishedCallback(self):
         self.abortSessionLoadingButton.setEnabled(False)
@@ -462,23 +517,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.stopSniffingButton.setEnabled(True)
         self.sendTxTableButton.setEnabled(True)
         self.activeChannelComboBox.setEnabled(False)
-        if self.activeChannelComboBox.isEnabled():
-            print('self.activeChannelComboBox.isEnabled()')
-            print(self.activeChannelComboBox)
-            print(self.activeChannelComboBox.currentIndex())
-            msg = can.Message(arbitration_id=0x42, data=self.activeChannelComboBox.currentIndex())
-            print(msg)
-            txBuf = [0x42, self.activeChannelComboBox.currentIndex()]  # TX FORWARDER
-            print(txBuf)
-            self.printConsole(txBuf)
-            self.canWriterThread.write(msg)
-            msg = can.Message(arbitration_id=0x42, data=1<<self.activeChannelComboBox.currentIndex())
-            print(msg)
-            txBuf = [0x41, 1 << self.activeChannelComboBox.currentIndex()]  # RX FORWARDER
-            print(txBuf)
-            self.printConsole(txBuf)
-            self.canWriterThread.write(msg)
-
         self.startTime = time.time()
 
     def printConsole(self, element):
@@ -527,17 +565,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.mainTablePopulatorCallback(rowData)
 
     def socketCanPacketReceiverCallback(self, message, time):
-        timestamp = [str(time - self.startTime)[:7]]  # timestamp
-
-        if message.is_extended_id:
-            ID = f"{message.arbitration_id:08x}"
-        else:
-            ID = f"{message.arbitration_id:04x}"
-        RTR = "01 " if message.is_remote_frame else "00"
-        IDE = "01 " if message.is_extended_id else "00"
-        DLC = message.dlc
-        DATA = [f"{x:02x}" for x in message.data[:DLC]]
-        data = MainTableData.MainTableData(timestamp, ID, RTR, IDE, DLC, DATA)
+        data = MainTableData.MainTableData.fromMessage(message)
         self.mainTablePopulatorCallback(data.getRowData())
 
     def portConnect(self):
@@ -648,7 +676,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.portSelectorComboBox.addItem(name)
 
         # TODO: Scan SocketCAN interfaces
-        self.portSelectorComboBox.addItem('can0')
+        self.portSelectorComboBox.addItem("vcan0")
 
 
 def exception_hook(exctype, value, traceback):

@@ -35,6 +35,9 @@ class SocketCanWriterThread(QThread):
         while self.isRunning:
             while self.writerQ:
                 message = self.writerQ.pop(0)
+                print("Sending \n" + str(message))
+                print(message.timestamp, hex(message.arbitration_id), message.is_remote_frame, message.is_extended_id, message.dlc,
+                      message.data)
                 self.bus.send(message)
 
                 if self.normalWriteDelay != 0:

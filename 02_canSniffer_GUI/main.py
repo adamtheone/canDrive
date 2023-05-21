@@ -222,7 +222,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             newData += str(self.decodedMessagesTableWidget.item(decodedCurrentRow, 5 + i).text())
         self.txTable.setItem(newRow, 3, QTableWidgetItem(newData))
         self.txTable.selectRow(newRow)
-        if self.sendTxTableButton.isEnabled():
+        if self.portDisconnectButton.isEnabled():
             self.sendTxTableCallback()
 
     def decodedTableItemChangedCallback(self):
@@ -574,20 +574,19 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.serialPortConnect()
         else:  # I assume the selection is a SocketCAN interface
             self.socketCanPortConnect()
+        self.onPortConnect()
 
     def serialPortConnect(self):
         try:
             self.createSerialController()
             self.canWriterThread = SerialWriter.SerialWriterThread(self.canController)
             self.canReaderThread = SerialReader.SerialReaderThread(self.canController)
-            self.onPortConnect()
         except serial.SerialException as e:
             print('Error opening port: ' + str(e))
 
     def socketCanPortConnect(self):
         try:
             self.createSocketCanController()
-            self.onPortConnect()
         except can.CanError as e:
             print('Error opening SocketCAN interface: ' + str(e))
 

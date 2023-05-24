@@ -1,6 +1,7 @@
 # canDrive @ 2020
 # To create a one-file executable, call: pyinstaller -F main.spec
 # ----------------------------------------------------------------
+import psutil
 import serial
 import canSniffer_ui
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, QHeaderView, QFileDialog, QRadioButton
@@ -665,6 +666,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             return True
         else:
             return False
+
     def scanPorts(self):
         self.portSelectorComboBox.clear()
 
@@ -675,6 +677,17 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             self.portSelectorComboBox.addItem(name)
 
         # TODO: Scan SocketCAN interfaces
+        addresses = psutil.net_if_addrs()
+        stats = psutil.net_if_stats()
+
+        available_networks = []
+        for intface, addr_list in addresses.items():
+            if any(getattr(addr, 'address').startswith("169.254") for addr in addr_list):
+                continue
+            elif intface in stats and getattr(stats[intface], "isup"):
+                #self.portSelectorComboBox.addItem(intface)
+                available_networks.append(intface)
+
         self.portSelectorComboBox.addItem("vcan0")
 
 

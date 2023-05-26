@@ -3,14 +3,14 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import can
 
 
-class SocketCanWriterThread(QThread):
+class CanWriterThread(QThread):
     packetSentSignal = pyqtSignal()
     writerQ = []  # Queue for storing can.Message objects
     repeatedWriteDelay = 0
     normalWriteDelay = 0
 
     def __init__(self, bus=None):
-        super(SocketCanWriterThread, self).__init__()
+        super(CanWriterThread, self).__init__()
         self.bus = bus
         self.isRunning = False
 
@@ -19,7 +19,7 @@ class SocketCanWriterThread(QThread):
 
     def stop(self):
         self.isRunning = False
-        self.clearQueue()
+        self.clearQueues()
 
     def write(self, message):
         self.writerQ.append(message)
@@ -35,9 +35,7 @@ class SocketCanWriterThread(QThread):
         while self.isRunning:
             while self.writerQ:
                 message = self.writerQ.pop(0)
-                print("Sending message:")
-                print(message.timestamp, hex(message.arbitration_id), message.is_remote_frame, message.is_extended_id, message.dlc,
-                      message.data)
+                print(message)
                 self.bus.send(message)
 
                 if self.normalWriteDelay != 0:

@@ -4,11 +4,12 @@ import can
 from can import Message
 import time
 
-class SocketCanReaderThread(QThread):
+
+class CanReaderThread(QThread):
     receivedPacketSignal = pyqtSignal(Message, float)
 
     def __init__(self, bus=None):
-        super(SocketCanReaderThread, self).__init__()
+        super(CanReaderThread, self).__init__()
         self.bus = bus
         self.isRunning = False
 

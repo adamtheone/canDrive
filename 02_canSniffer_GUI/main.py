@@ -22,9 +22,9 @@ import csv
 import HideOldPackets
 import SerialReader
 import SerialWriter
-import SocketCanReader
-import SocketCanWriter
-import MainTableData
+import canReader
+import canWriter
+import tableDataConverter
 import FileLoader
 
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # enable highdpi scaling
@@ -46,6 +46,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.hideIdsLineEdit.textChanged.connect(self.hideIdsTextChanged)
         self.clearLabelDictButton.clicked.connect(self.clearLabelDict)
         self.canController = None
+        self.playbackMainTableButton.setVisible(False)
         self.mainMessageTableWidget.cellClicked.connect(self.cellWasClicked)
         self.newTxTableRow.clicked.connect(self.newTxTableRowCallback)
         self.removeTxTableRow.clicked.connect(self.removeTxTableRowCallback)
@@ -169,7 +170,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             return
         maxRows = self.mainMessageTableWidget.rowCount()
         rowData = self.getRowDataFromTable(self.mainMessageTableWidget, row)
-        message = MainTableData.MainTableData.fromRowData(rowData).toMessage()
+        message = tableDataConverter.MainTableData.fromRowData(rowData).toMessage()
         if row < maxRows - 1:
             dt = float(self.mainMessageTableWidget.item(row, 0).text()) - float(
                 self.mainMessageTableWidget.item(row + 1, 0).text())
@@ -299,7 +300,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
     def getSocketCanTxMessage(self, row):
         rowData = self.getRowDataFromTable(self.txTable, row)
-        data = MainTableData.MainTableData.fromTxRowData(rowData)
+        data = tableDataConverter.TxTableData.fromTxRowData(rowData)
         return data.toMessage()
 
     def fileLoadingFinishedCallback(self):
@@ -506,12 +507,9 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.startTime = time.time()
 
     def startCanSniffing(self):
-        print('startCanSniffing')
         if self.canReaderThread:
-            print('self.canReaderThread.start()')
             self.canReaderThread.start()
         if self.autoclearCheckBox.isChecked():
-            print('self.autoclearCheckBox.isChecked()')
             self.idDict.clear()
             self.mainMessageTableWidget.setRowCount(0)
         self.startSniffingButton.setEnabled(False)
@@ -519,16 +517,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.sendTxTableButton.setEnabled(True)
         self.activeChannelComboBox.setEnabled(False)
         self.startTime = time.time()
-
-    def printConsole(self, element):
-        if isinstance(element, list):
-            print('list')
-            print(bytearray(element))
-        else:
-            print('utf')
-            print(element.encode("utf-8"))
-
-
 
     def stopSniffing(self):
         self.startSniffingButton.setEnabled(True)
@@ -566,7 +554,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.mainTablePopulatorCallback(rowData)
 
     def socketCanPacketReceiverCallback(self, message, time):
-        data = MainTableData.MainTableData.fromMessage(message)
+        message.timestamp = str(time - self.startTime)[:7]  # timestamp
+        data = tableDataConverter.MainTableData.fromMessage(message)
         self.mainTablePopulatorCallback(data.getRowData())
 
     def portConnect(self):
@@ -599,6 +588,9 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.portConnectButton.setEnabled(False)
         self.startSniffingButton.setEnabled(True)
         self.stopSniffingButton.setEnabled(False)
+        self.activeChannelComboBox.setEnabled(True)
+        self.portSelectorComboBox.setEnabled(False)
+        self.playbackMainTableButton.setVisible(True)
 
     def createSerialController(self):
         selectedPort = self.portSelectorComboBox.currentText()
@@ -613,10 +605,12 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         selectedPort = self.portSelectorComboBox.currentText()
         self.connectSocketCan(selectedPort, 500000)
         self.canController = can.interface.Bus(channel=selectedPort, bustype='socketcan')
-        self.canWriterThread = SocketCanWriter.SocketCanWriterThread(self.canController)
-        self.canReaderThread = SocketCanReader.SocketCanReaderThread(self.canController)
+        self.canWriterThread = canWriter.CanWriterThread(self.canController)
+        self.canReaderThread = canReader.CanReaderThread(self.canController)
         # Other settings for the CAN controller, if needed
 
+    # Linux socketCan connection
+    # TODO: create a module to manage OS if needed
     def connectSocketCan(self, port, bitrate):
         if not bitrate:
             bitrate = 500000
@@ -643,8 +637,6 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             print('Error closing port: ' + str(e))
 
     def socketCanPortDisconnect(self, port):
-        self.canReaderThread.stop()
-        self.canWriterThread.stop()
         command = 'sudo ifconfig ' + port + ' down'
         print(command)
         os.system(command)
@@ -654,12 +646,15 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
     def onPortDisconnect(self):
         if self.stopSniffingButton.isEnabled():
             self.stopSniffing()
-        self.canReaderThread.stop()
         self.canWriterThread.stop()
         self.portDisconnectButton.setEnabled(False)
         self.portConnectButton.setEnabled(True)
         self.startSniffingButton.setEnabled(False)
         self.serialConnectedCheckBox.setChecked(False)
+        self.portSelectorComboBox.setEnabled(True)
+        self.playbackMainTableButton.setVisible(False)
+
+
 
     def isSerialPort(self, port):
         if port.startswith("COM") or port.startswith("/dev/tty"):
@@ -676,19 +671,11 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         for name in nameList:
             self.portSelectorComboBox.addItem(name)
 
-        # TODO: Scan SocketCAN interfaces
-        addresses = psutil.net_if_addrs()
+        # TOTEST: Scan SocketCAN interfaces
         stats = psutil.net_if_stats()
-
-        available_networks = []
-        for intface, addr_list in addresses.items():
-            if any(getattr(addr, 'address').startswith("169.254") for addr in addr_list):
-                continue
-            elif intface in stats and getattr(stats[intface], "isup"):
-                #self.portSelectorComboBox.addItem(intface)
-                available_networks.append(intface)
-
-        self.portSelectorComboBox.addItem("vcan0")
+        for s in stats:
+            if str(s).__contains__("can"):
+                self.portSelectorComboBox.addItem(s)
 
 
 def exception_hook(exctype, value, traceback):

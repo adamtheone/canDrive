@@ -576,7 +576,10 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
 
     def socketCanPortConnect(self):
         try:
-            self.createSocketCanController()
+            self.canController = self.createSocketCanController()
+            sendCanController = self.createSocketCanController()
+            self.canWriterThread = canWriter.CanWriterThread(sendCanController)
+            self.canReaderThread = canReader.CanReaderThread(self.canController)
         except can.CanError as e:
             print('Error opening SocketCAN interface: ' + str(e))
 
@@ -604,9 +607,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
     def createSocketCanController(self):
         selectedPort = self.portSelectorComboBox.currentText()
         self.connectSocketCan(selectedPort, 500000)
-        self.canController = can.interface.Bus(channel=selectedPort, bustype='socketcan')
-        self.canWriterThread = canWriter.CanWriterThread(self.canController)
-        self.canReaderThread = canReader.CanReaderThread(self.canController)
+        return can.interface.Bus(channel=selectedPort, bustype='socketcan')
         # Other settings for the CAN controller, if needed
 
     # Linux socketCan connection
@@ -614,13 +615,11 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
     def connectSocketCan(self, port, bitrate):
         if not bitrate:
             bitrate = 500000
-        os.system('sudo ifconfig ' + port + ' down')
-        os.system('sudo ip link set ' + port + ' type can bitrate ' + str(bitrate))
-        os.system('sudo ifconfig ' + port + ' txqueuelen 100000')
-        os.system('sudo ifconfig ' + port + ' up')
-        if self.canReaderThread:
-            self.canReaderThread.start()
-            self.canWriterThread.start()
+        if not self.canController:
+            os.system('sudo ifconfig ' + port + ' down')
+            os.system('sudo ip link set ' + port + ' type can bitrate ' + str(bitrate))
+            os.system('sudo ifconfig ' + port + ' txqueuelen 100000')
+            os.system('sudo ifconfig ' + port + ' up')
 
     def portDisconnect(self):
         selectedPort = self.portSelectorComboBox.currentText()
@@ -637,11 +636,10 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             print('Error closing port: ' + str(e))
 
     def socketCanPortDisconnect(self, port):
+        self.onPortDisconnect()
         command = 'sudo ifconfig ' + port + ' down'
         print(command)
         os.system(command)
-        self.onPortDisconnect()
-
 
     def onPortDisconnect(self):
         if self.stopSniffingButton.isEnabled():

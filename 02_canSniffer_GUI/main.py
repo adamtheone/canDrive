@@ -213,6 +213,8 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
         self.newTxTableRowCallback()
         newRow = 0
         decodedCurrentRow = self.decodedMessagesTableWidget.currentRow()
+        if decodedCurrentRow < 0:
+            return
         newId = str(self.decodedMessagesTableWidget.item(decodedCurrentRow, 1).text()).split(" ")
         newItem = QTableWidgetItem(newId[0])
         self.txTable.setItem(newRow, 0, QTableWidgetItem(newItem))
@@ -224,7 +226,7 @@ class canSnifferGUI(QMainWindow, canSniffer_ui.Ui_MainWindow):
             newData += str(self.decodedMessagesTableWidget.item(decodedCurrentRow, 5 + i).text())
         self.txTable.setItem(newRow, 3, QTableWidgetItem(newData))
         self.txTable.selectRow(newRow)
-        if self.portDisconnectButton.isEnabled():
+        if self.portDisconnectButton.isEnabled() and self.sendTxTableButton.isEnabled():
             self.sendTxTableCallback()
 
     def decodedTableItemChangedCallback(self):
